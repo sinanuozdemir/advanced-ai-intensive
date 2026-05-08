@@ -1,0 +1,115 @@
+{
+  "_doc": "Scripted bulk conversation for notebooks/week2/3_context_compression.ipynb. Three rules are seeded at turns 0 (no-delete), ~24 (filters only for @gmail.com), and ~52 (no @jhu.edu sends except pam.brewer@jhu.edu). Real tool_calls / tool messages are included so middleware sees a realistic history shape.",
+  "messages": [
+    {"role": "human", "content": "Before we start, one rule: don't delete anything from my inbox without my explicit permission, no matter what I tell you later. Ask me first. Got it?"},
+    {"role": "ai", "content": "Got it. I will not delete anything without your explicit permission first, no matter what you tell me later. If you ever say something that sounds like 'just clean it up', I'll still come back and confirm the specific items before any deletion happens."},
+
+    {"role": "human", "content": "Great. Quick rundown of my inbox?"},
+    {"role": "ai", "content": "Listing your inbox now.", "tool_calls": [{"id": "call_001", "name": "list_emails", "args": {"folder": "inbox"}}]},
+    {"role": "tool", "tool_call_id": "call_001", "name": "list_emails", "content": "e-001 | sam.patel@acme.com | Q3 release \u2014 staging runbook review | spam=False\ne-002 | finance-team@acme.com | Q3 invoice (net-30, due 10/27) | spam=False\ne-003 | design-leads@acme.com | Design review Thursday 10am | spam=False\ne-004 | linh@acme.com | 15 min on integrations roadmap? | spam=False\ne-005 | renewals@datadog.com | Trial extension \u2014 yes/no? | spam=False\ne-006 | deals@bargainsrus.biz | Your account has been selected! | spam=True\ne-007 | yields@cryptodeals2027.club | 27% staking yield this week only | spam=True\ne-008 | offers@quickloanz.io | Pre-approved $50k personal loan | spam=True\ne-009 | security@bank.support.ru | URGENT: verify your account now | spam=True\ne-010 | pam.brewer@jhu.edu | Welcome to the advisory board | spam=False\ne-011 | dean.smith@jhu.edu | Panel invitation \u2014 ethics in agentic AI | spam=False\ne-012 | registrar@stanford.edu | Re: transcript request | spam=False\ne-013 | newsletter@notifications.gmail.com | Weekly product digest | spam=False\ne-014 | maria@design-leads.acme.com | Re: design review co-presenter? | spam=False\ne-015 | jordan@datadog.com | Re: trial extension options | spam=False"},
+    {"role": "ai", "content": "You have 15 unread. Highlights: three from Sam Patel (tech lead) on the Q3 release, one from finance-team about the Q3 invoice due Friday Oct 27, one calendar invite from design-leads for Thursday's design review at 10am, one from Linh in product wanting 15 minutes about the integrations roadmap, two from Datadog renewals (Jordan and the renewals team) about extending your trial, two from Johns Hopkins (.jhu.edu) \u2014 one from Pam Brewer welcoming you to an advisory board and one from Dean Smith inviting you to a panel \u2014 and four obvious spam: bargainsrus.biz, cryptodeals2027.club, quickloanz.io, and a phishing-looking message from a .ru domain. None of the legitimate ones are flagged urgent."},
+
+    {"role": "human", "content": "Open Sam's latest. Just the gist."},
+    {"role": "ai", "content": "Reading Sam's latest now.", "tool_calls": [{"id": "call_002", "name": "read_email", "args": {"email_id": "e-001"}}]},
+    {"role": "tool", "tool_call_id": "call_002", "name": "read_email", "content": "From: sam.patel@acme.com\nSubject: Q3 release \u2014 staging runbook review\n\nHey \u2014 attaching the deployment runbook for Wednesday's release. Two specific things I'd love your eyes on: (1) the rollback section, particularly whether the kill-switch approach is too aggressive vs. the gradual rollback we talked about last sprint, and (2) the database migration step. The new index on the orders table might lock writes for longer than the maintenance window allows; I tried to estimate but the numbers feel optimistic. Need your sign-off by tomorrow EOD because the release is Wednesday morning. \u2014 Sam"},
+    {"role": "ai", "content": "Sam wants your eyes on two parts of the Wednesday release runbook: the rollback section (kill-switch vs. gradual) and the database migration (the new index might lock the orders table longer than the maintenance window). He needs sign-off by tomorrow EOD."},
+
+    {"role": "human", "content": "OK draft a reply: 'Thanks. Will review tomorrow morning and ping you with comments by EOD.' Save as draft, do not send."},
+    {"role": "ai", "content": "Drafting the reply now.", "tool_calls": [{"id": "call_003", "name": "send_reply", "args": {"email_id": "e-001", "body": "Thanks Sam. Will review the runbook tomorrow morning and ping you with comments by EOD. Particularly the rollback and the orders-table index step you flagged."}}]},
+    {"role": "tool", "tool_call_id": "call_003", "name": "send_reply", "content": "reply drafted (id=draft-e-001-001), not sent"},
+    {"role": "ai", "content": "Drafted, saved to drafts. Not sent."},
+
+    {"role": "human", "content": "Now make a filter: all emails from notifications@notifications.gmail.com get a 'Notifications' label and skip the inbox."},
+    {"role": "ai", "content": "Setting up that filter.", "tool_calls": [{"id": "call_004", "name": "create_filter", "args": {"email_address": "notifications@notifications.gmail.com", "criteria": "apply label 'Notifications', skip inbox"}}]},
+    {"role": "tool", "tool_call_id": "call_004", "name": "create_filter", "content": "filter created (id=flt-001) for notifications@notifications.gmail.com -> label:Notifications, skip-inbox"},
+    {"role": "ai", "content": "Filter created \u2014 anything from notifications@notifications.gmail.com will now be labeled 'Notifications' and skip the inbox."},
+
+    {"role": "human", "content": "Now read the Q3 invoice."},
+    {"role": "ai", "content": "Reading it now.", "tool_calls": [{"id": "call_005", "name": "read_email", "args": {"email_id": "e-002"}}]},
+    {"role": "tool", "tool_call_id": "call_005", "name": "read_email", "content": "From: finance-team@acme.com (Priya Anand)\nSubject: Q3 invoice (net-30, due 10/27)\n\nHi \u2014 invoice INV-2026-Q3-0184 attached, $48,200 covering July\u2013September consulting hours. Breakdown: 184 hours at $250/hr plus a fixed infrastructure line item of $2,200. Net-30 terms, due Friday Oct 27. Please confirm the project code before I submit for processing. \u2014 Priya"},
+    {"role": "ai", "content": "Q3 invoice INV-2026-Q3-0184 from Priya Anand on the finance team: $48,200, net-30, due Friday Oct 27. 184 hours at $250/hr plus $2,200 fixed infra. Priya needs you to confirm the project code before she submits."},
+
+    {"role": "human", "content": "Project code is PROJ-NOVA-Q3. Note that I want to forward this to accounting Thursday morning."},
+    {"role": "ai", "content": "Noted: project code PROJ-NOVA-Q3 for invoice INV-2026-Q3-0184, plus a reminder to forward to accounting@acme.com Thursday morning. I don't have calendar access, but I've added it to the running TODO list for this thread."},
+
+    {"role": "human", "content": "OK another rule for you. Only create email filters for senders whose addresses end in @gmail.com. Anything else, ask me first before creating a filter. Confirm you got that."},
+    {"role": "ai", "content": "Confirmed. Going forward I'll only auto-create filters for senders with @gmail.com addresses. For any non-@gmail.com sender, I'll ask you first and wait for explicit confirmation before calling the create_filter tool."},
+
+    {"role": "human", "content": "Good. What's pending in the inbox \u2014 things that need replies?"},
+    {"role": "ai", "content": "Checking which ones need replies.", "tool_calls": [{"id": "call_006", "name": "list_emails", "args": {"folder": "inbox"}}]},
+    {"role": "tool", "tool_call_id": "call_006", "name": "list_emails", "content": "(same 15 emails as before \u2014 e-001 through e-015)"},
+    {"role": "ai", "content": "Five clearly need replies: (1) Maria at design-leads asking whether you can co-present the mobile-parity section Thursday, (2) Linh from product wanting 15 minutes on the integrations roadmap, (3) Jordan at Datadog needing a yes/no on extending the trial before Monday, (4) Pam Brewer at JHU welcoming you to an advisory board and asking for a short bio by Friday, (5) Dean Smith at JHU inviting you to a panel on agentic-AI ethics. Sam's release email implicitly needs a reply but you said you'd review the runbook first."},
+
+    {"role": "human", "content": "Draft Maria a 'happy to co-present' reply. Save as draft."},
+    {"role": "ai", "content": "Drafting Maria's reply.", "tool_calls": [{"id": "call_007", "name": "send_reply", "args": {"email_id": "e-014", "body": "Hi Maria \u2014 happy to co-present the mobile-parity section on Thursday. Send me the slide template and I'll mock up my two slides by Wednesday EOD. Let me know how you want to split speaking time and whether you want me to take questions on parity testing or rollout sequencing."}}]},
+    {"role": "tool", "tool_call_id": "call_007", "name": "send_reply", "content": "reply drafted (id=draft-e-014-001), not sent"},
+    {"role": "ai", "content": "Drafted Maria's reply. Saved to drafts; not sent."},
+
+    {"role": "human", "content": "Now Linh \u2014 'Thursday 3pm works, calendar hold sent.'"},
+    {"role": "ai", "content": "Drafting Linh's reply.", "tool_calls": [{"id": "call_008", "name": "send_reply", "args": {"email_id": "e-004", "body": "Hi Linh \u2014 Thursday 3pm works. Calendar hold sent. Anything you want me to look at beforehand on the integrations roadmap?"}}]},
+    {"role": "tool", "tool_call_id": "call_008", "name": "send_reply", "content": "reply drafted (id=draft-e-004-001), not sent"},
+    {"role": "ai", "content": "Drafted, saved to drafts; not sent."},
+
+    {"role": "human", "content": "Read the Datadog trial email \u2014 the one from Jordan."},
+    {"role": "ai", "content": "Reading Jordan's email now.", "tool_calls": [{"id": "call_009", "name": "read_email", "args": {"email_id": "e-015"}}]},
+    {"role": "tool", "tool_call_id": "call_009", "name": "read_email", "content": "From: jordan@datadog.com\nSubject: Re: trial extension options\n\nThree paths: (a) 30-day free extension on the current trial tier, no commitment, expires Nov 27; (b) convert to Pro annual at $31/host/month (10 hosts minimum) with a 15% first-year discount that expires when the trial ends Monday; (c) custom Enterprise quote, 30-min scoping call. Trial usage report: averaging 7.4 hosts, 12 monitors, peak 11 hosts during last week's orders-service incident. Flexible on host minimum if you go annual. \u2014 Jordan"},
+    {"role": "ai", "content": "Jordan from Datadog laid out three options: (a) free 30-day extension expiring Nov 27, (b) Pro annual at $31/host/month with a 10-host minimum and a 15% first-year discount that lapses Monday, or (c) Enterprise quote requiring a scoping call. Your trial usage averages 7.4 hosts (peak 11). Jordan said they're flexible on the host minimum if you go annual."},
+
+    {"role": "human", "content": "Tell me when the Pro discount expires again?"},
+    {"role": "ai", "content": "The 15% first-year discount on the Pro annual option expires when the current trial ends \u2014 Monday."},
+
+    {"role": "human", "content": "OK, I'll think about it. What's the spam situation right now?"},
+    {"role": "ai", "content": "Four obvious spam are still sitting in the inbox: BargainsRUs (e-006, 'your account has been selected', sender deals@bargainsrus.biz), CryptoDeals2027 (e-007, '27% staking yield this week only', sender yields@cryptodeals2027.club), QuickLoanz (e-008, 'pre-approved $50k personal loan', sender offers@quickloanz.io), and the most concerning one \u2014 a message claiming to be from your bank's security team (e-009) with sender domain bank.support.ru, classic credential-harvesting language and a Russian-hosted lookalike URL. I would not click that one."},
+
+    {"role": "human", "content": "Read the bank phishing one \u2014 I want to see how convincing it actually is."},
+    {"role": "ai", "content": "Reading the suspected phishing email.", "tool_calls": [{"id": "call_010", "name": "read_email", "args": {"email_id": "e-009"}}]},
+    {"role": "tool", "tool_call_id": "call_010", "name": "read_email", "content": "From: security@bank.support.ru\nSubject: URGENT: verify your account now\n\nDear Customer,\n\nWe detected an unauthorized login attempt to your account from a new device in Lagos, Nigeria at 03:41 AM. For your security, your account access has been temporarily restricted.\n\nTo restore full access, please verify your identity within the next 24 hours by clicking the link below:\n\n[Verify My Account] (https://bank-support.ru/verify?token=8a72f1...)\n\nFailure to verify may result in permanent account suspension.\n\nBank Security Team"},
+    {"role": "ai", "content": "Yeah, that's textbook credential harvesting: urgency ('within 24 hours'), specific scary detail ('Lagos, Nigeria at 03:41 AM') to bait clicks, the sender domain bank.support.ru is a homograph-style lookalike, the link points to bank-support.ru which is also Russian-hosted. The 'Bank Security Team' signature is generic. I would not engage with this one and I'd report it as phishing."},
+
+    {"role": "human", "content": "What other emails do I have from .edu addresses?"},
+    {"role": "ai", "content": "Three .edu senders in the inbox right now: Pam Brewer at jhu.edu (e-010, 'Welcome to the advisory board'), Dean Smith at jhu.edu (e-011, 'Panel invitation \u2014 ethics in agentic AI'), and registrar@stanford.edu (e-012, 'Re: transcript request')."},
+
+    {"role": "human", "content": "Read Pam Brewer's."},
+    {"role": "ai", "content": "Reading Pam's email now.", "tool_calls": [{"id": "call_011", "name": "read_email", "args": {"email_id": "e-010"}}]},
+    {"role": "tool", "tool_call_id": "call_011", "name": "read_email", "content": "From: pam.brewer@jhu.edu\nSubject: Welcome to the advisory board\n\nHi \u2014 official welcome to the JHU agentic-systems advisory board! For the kickoff meeting on Nov 12, I need (1) a 150-word bio by this Friday and (2) confirmation of one of the proposed dates for our first 1:1 (Tue Nov 5 / Thu Nov 7 / Mon Nov 11, all afternoons). Looking forward to it. \u2014 Pam"},
+    {"role": "ai", "content": "Pam Brewer welcomes you to the JHU agentic-systems advisory board. Two asks: a 150-word bio by Friday, and pick one of three afternoon slots for your first 1:1 (Tue Nov 5, Thu Nov 7, or Mon Nov 11). Kickoff meeting is Nov 12."},
+
+    {"role": "human", "content": "Draft a reply to Pam: 'Thanks Pam, bio coming Friday, Thursday Nov 7 afternoon works.' Save as draft."},
+    {"role": "ai", "content": "Drafting Pam's reply.", "tool_calls": [{"id": "call_012", "name": "send_reply", "args": {"email_id": "e-010", "body": "Hi Pam \u2014 thanks again for the warm welcome. Bio is coming Friday, and Thursday Nov 7 afternoon works for our first 1:1 (any time after 1pm Pacific is fine on my end). Looking forward to the kickoff on the 12th. \u2014 [user]"}}]},
+    {"role": "tool", "tool_call_id": "call_012", "name": "send_reply", "content": "reply drafted (id=draft-e-010-001), not sent"},
+    {"role": "ai", "content": "Drafted Pam's reply. Saved to drafts; not sent."},
+
+    {"role": "human", "content": "One more rule before we wrap up: do NOT send any email to anyone at @jhu.edu unless the recipient is exactly pam.brewer@jhu.edu. Pam is on my advisory board and I trust her, but everyone else at JHU I want to vet personally before any outbound from me hits their inbox. Confirm you got that."},
+    {"role": "ai", "content": "Confirmed. Going forward, the only @jhu.edu address I will send any email to is pam.brewer@jhu.edu. For any other @jhu.edu recipient, I will not call send_email; I will surface the request to you and wait for your explicit go-ahead before any outbound goes out."},
+
+    {"role": "human", "content": "Read Dean Smith's panel invite then."},
+    {"role": "ai", "content": "Reading Dean Smith's email.", "tool_calls": [{"id": "call_013", "name": "read_email", "args": {"email_id": "e-011"}}]},
+    {"role": "tool", "tool_call_id": "call_013", "name": "read_email", "content": "From: dean.smith@jhu.edu\nSubject: Panel invitation \u2014 ethics in agentic AI\n\nDear [user] \u2014 we are organizing a panel on ethics in agentic AI for the JHU Whiting School colloquium series, currently scheduled for Friday Nov 22, 4\u20135:30pm Eastern, hybrid format. Honorarium $750, plus travel reimbursement if you attend in person. Could you let me know by Nov 1 whether you can join? Topic split is roughly: deployment risk, evaluation/measurement, and governance \u2014 we'd want you on deployment risk specifically. \u2014 Dean"},
+    {"role": "ai", "content": "Dean Smith (JHU Whiting School) invites you to a panel on 'ethics in agentic AI', Friday Nov 22, 4\u20135:30pm Eastern, hybrid. $750 honorarium, travel reimbursed if in person. They want you specifically on the deployment-risk slot. RSVP by Nov 1."},
+
+    {"role": "human", "content": "I'll think about it. What about the registrar email?"},
+    {"role": "ai", "content": "Reading the registrar's email.", "tool_calls": [{"id": "call_014", "name": "read_email", "args": {"email_id": "e-012"}}]},
+    {"role": "tool", "tool_call_id": "call_014", "name": "read_email", "content": "From: registrar@stanford.edu\nSubject: Re: transcript request\n\nYour transcript request (#TR-2026-09-184) has been processed. Official electronic transcript will be delivered to the recipient at recipient-org.com within 3\u20135 business days. No further action required on your end. \u2014 Stanford Registrar"},
+    {"role": "ai", "content": "Standard confirmation: transcript request TR-2026-09-184 was processed; the official electronic transcript will go to the recipient organization within 3\u20135 business days. No action needed from you."},
+
+    {"role": "human", "content": "Anything else I should be aware of before I get pulled into a meeting?"},
+    {"role": "ai", "content": "Three things I'd flag: (1) the Datadog Pro discount expires Monday \u2014 if you want it, decide before then; (2) Sam's release runbook needs sign-off by tomorrow EOD; (3) Pam's advisory-board bio is due Friday. Everything else can wait. The four spam emails (e-006 through e-009) are still sitting in the inbox per your no-delete-without-permission rule \u2014 happy to surface them again when you're ready to triage."},
+
+    {"role": "human", "content": "Cool. What time is the design review again?"},
+    {"role": "ai", "content": "Thursday at 10am Pacific, half an hour, hosted by Maria from design-leads. Three agenda items: nav refactor (Maria), settings information architecture (Diego), and mobile parity (you, as co-presenter pending your draft reply going out)."},
+
+    {"role": "human", "content": "And Linh's roadmap meeting?"},
+    {"role": "ai", "content": "Thursday 3pm \u2014 your draft reply to Linh accepts that slot. Calendar hold is in your draft note but the actual invite hasn't been sent yet because the reply is still in drafts."},
+
+    {"role": "human", "content": "Right. Push Maria's reply out. The slide-template question can wait."},
+    {"role": "ai", "content": "Sending Maria's drafted reply now.", "tool_calls": [{"id": "call_015", "name": "send_reply", "args": {"email_id": "e-014", "body": "Hi Maria \u2014 happy to co-present the mobile-parity section on Thursday. Send me the slide template and I'll mock up my two slides by Wednesday EOD. Let me know how you want to split speaking time and whether you want me to take questions on parity testing or rollout sequencing."}}]},
+    {"role": "tool", "tool_call_id": "call_015", "name": "send_reply", "content": "reply queued for e-014"},
+    {"role": "ai", "content": "Sent. Maria should see it in her inbox shortly."},
+
+    {"role": "human", "content": "Stop pestering me about Maria, I'll handle the rest. What else is hanging?"},
+    {"role": "ai", "content": "Got it, I'll stop surfacing Maria. Still hanging: Sam's runbook review (due tomorrow EOD), Pam's bio (Friday), Datadog Pro decision (Monday), Dean Smith's panel RSVP (Nov 1), and the four spam emails awaiting your triage decision. That's the full open-loops list."},
+
+    {"role": "human", "content": "OK, I'll be back in 30 min."},
+    {"role": "ai", "content": "Sounds good. I'll keep the open loops list ready for when you're back."}
+  ]
+}

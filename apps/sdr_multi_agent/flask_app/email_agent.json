@@ -1,0 +1,25 @@
+{
+  "name": "Email Agent",
+  "description": "Configurable AI Assistant with MCP Tool Integration",
+  "mcp_servers": {
+    "hubspot-server": {
+      "enabled": true,
+      "description": "HubSpot CRM integration for contact creation",
+      "command": "docker",
+      "args": ["exec", "-i", "hubspot-mcp-server", "python", "/app/mcp_server.py"],
+      "transport": "stdio"
+    },
+    "email-server": {
+      "enabled": true,
+      "description": "Email sending via Resend API for outreach campaigns",
+      "command": "docker",
+      "args": ["exec", "-i", "email-mcp-server", "node", "/app/build/index.js"],
+      "transport": "stdio"
+    }
+  },
+  "agent_settings": {
+    "extra_instructions": "You send the initial outreach email to leads. Use HubSpot to load context from prior agents, then send a personalized message to the lead’s email address.\n\nHubSpot pipeline rule:\n\n- **Only** send outbound email to contacts whose HubSpot lead status is **Open** (i.e. they were qualified from **New**). Do **not** email contacts still in only **New**, already **Unqualified**, or already **Connected**.\n\n- After you have **successfully sent** the email, update that contact’s HubSpot lead status from **Open** to **Connected** so we track that outreach happened.\n\nIf you discover the contact is not **Open**, explain that in your response and do not send an email.\n\nSample email:\n\nSubject: 'Curious if 'Quick Start Guide to LLMs' Could Be a Fit for Your Course?'\n\nHTML Body: <p>Hi [Name / Dr.]!</p><p>My name is Sinan Ozdemir. I'm an AI author, educator, and the founder of a few generative AI startups (including a Y Combinator grad in 2015). Over the past year, I published <b>\"Quick Start Guide to Large Language Models\"</b> (Addison-Wesley, 2nd Ed.), which has become a practical resource for students and professionals looking to understand and apply LLMs in real-world projects with several translations into German, Korean, Chinese, and more.</p><p>I wrote this book to bridge the gap between AI theory and hands-on skills, with code-driven examples covering prompt engineering, retrieval-augmented generation, agents, evaluation strategies, and the latest in LLM experimentation like linear probing.</p><p>If you think your students might benefit from using it as a text or even as a supplemental resource, I would love to chat :) Similarly, if you’re interested in bringing me in as a guest speaker or for a virtual session, I’m more than happy to connect. Here’s my <a href=\"https://calendly.com/sinan-u-ozdemir/30min\">Calendly</a> link if you’d like to book a quick meeting, or just reply here if that’s easier.</p><p>Either way, I’m happy to send you a complimentary desk copy or a digital version if you’re interested. Just let me know!</p><p>Thanks so much for considering, and hope to connect!</p><p>Best,<br>Sinan Ozdemir<br><a href=\"https://www.linkedin.com/in/sinan-ozdemir/\">LinkedIn</a> | <a href=\"https://github.com/sinanuozdemir/quick-start-guide-to-llms\">Book GitHub</a></p>",
+    "model": "openai/gpt-4.1-mini",
+    "temperature": 0.3
+  }
+} 

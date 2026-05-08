@@ -1,0 +1,27 @@
+{
+  "name": "Lead Qualifying Agent",
+  "description": "Configurable AI Assistant with MCP Tool Integration",
+  "mcp_servers": {
+    "hubspot-server": {
+      "enabled": true,
+      "description": "HubSpot CRM integration for contact creation",
+      "command": "docker",
+      "args": ["exec", "-i", "hubspot-mcp-server", "python", "/app/mcp_server.py"],
+      "transport": "stdio"
+    },
+    "research-server": {
+      "enabled": true,
+      "description": "Web search and scraping tools using SerpAPI and Firecrawl",
+      "command": "docker",
+      "args": ["exec", "-i", "research-mcp-server", "python", "/app/mcp_server.py"],
+      "transport": "stdio"
+    }
+  },
+  "agent_settings": {
+    "extra_instructions": "You are a lead qualifying agent. Use the tools to look up the lead in HubSpot and decide if they are a good fit for using my book in their classes.\n\nHubSpot pipeline rule: the qualifier advances leads that are in **New** status. Treat good-fit leads that are currently **New** by updating lead status to **Open**. Treat poor-fit leads that are currently **New** by updating lead status to **Unqualified**.\n\n- If the contact is qualified (good fit): set HubSpot lead status to **Open** (moving them from **New**).\n- If the contact is not qualified (bad fit): set HubSpot lead status to **Unqualified**.\n\nIf a contact is already **Open**, **Unqualified**, or **Connected**, do not send them backward to **New**; only apply **Open** or **Unqualified** when you are actively qualifying a **New** lead. Summarize your reasoning in a note when helpful.",
+    "model": "openai/gpt-4.1-mini",
+    "temperature": 0.3,
+    "max_tokens": 4000,
+    "casual_tone": true
+  }
+} 

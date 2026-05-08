@@ -1,0 +1,59 @@
+{
+  "predict.predict": {
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "user": "Thanks, talk soon.",
+        "assistant": "Talk soon!",
+        "reasoning": "No atomic, verifiable facts are introduced in this turn beyond a generic farewell.",
+        "facts": ""
+      },
+      {
+        "user": "Hi, I'm Anna from Acme Corp. We're a 250-person fintech in Berlin, and I'm the VP of Engineering. Tell me how your tool helps teams like ours.",
+        "assistant": "Hi Anna—thanks! For teams like Acme (250-person fintech), our LLM agent observability platform captures every run’s prompts, tool calls, retrieval context, traces, and outcomes so you can pinpoint failure causes (e.g., bad retrieval, tool errors, prompt regressions) and track reliability over time. If you share your stack (e.g., LangChain/LlamaIndex, OpenAI/Anthropic, where logs live) and current requirements (SLA, debugging workflow, compliance), those specifics are saved into the agent’s semantic memory so future recommendations map directly to your setup. We typically price per active workspace/month, often starting around ~$500–$1,500/month depending on volume and retention.",
+        "facts": "Acme Corp | described_as | 250-person fintech\nAcme Corp | headquartered_in | Berlin\nAgent semantic memory | maps_recommendations_to | the user setup\nAgent semantic memory | saves | where logs live and compliance and debugging workflow requirements\nAgent semantic memory | stores | stack specifics and requirements provided by the user\nAnna | affiliated_with | Acme Corp\nAnna | job_title | VP of Engineering\nLLM agent observability platform | captures | outcomes for every run\nLLM agent observability platform | captures | prompts for every run\nLLM agent observability platform | captures | retrieval context for every run\nLLM agent observability platform | captures | tool calls for every run\nLLM agent observability platform | captures | traces for every run\nLLM agent observability platform | enables | pinpointing failure causes\nLLM agent observability platform | enables_tracking | reliability over time\nLLM agent observability platform | pinpoints_failure_causes_related_to | bad retrieval\nLLM agent observability platform | pinpoints_failure_causes_related_to | prompt regressions\nLLM agent observability platform | pinpoints_failure_causes_related_to | tool errors\nPricing | is_based_on | active workspace/month\nPricing | typical_starting_range_usd_per_month | 500-1500\nRecommendation system | supports | LangChain/LlamaIndex and OpenAI/Anthropic integrations"
+      },
+      {
+        "user": "We're currently using LangChain in production but the observability has been painful. We process about 4M agent runs a month.",
+        "assistant": "Got it—4M runs/month is exactly the kind of scale where “painful” observability usually comes from missing end-to-end traces (prompt→retrieval→tool calls→final answer) and weak aggregation/alerting. We ingest LangChain agent events plus tool/retrieval artifacts, build queryable traces and reliability dashboards (latency, error rate, tool failure modes, retrieval quality), and let you do diffing/regression checks so you can see what changed. Also, I’ll store that you’re on LangChain in production with ~4M runs/month so the next time you ask about setup or optimizations, recommendations are grounded in your exact context.",
+        "facts": "User | operates_in_production | LangChain\nUser | processes_about | 4M agent runs per month\nUser | uses | LangChain"
+      },
+      {
+        "user": "Pricing — what would 4M runs/month cost on your platform?",
+        "assistant": "$2,400/month on the Growth plan, which includes 5M runs.",
+        "facts": "our_platform | growth_plan_price_monthly | $2,400\nour_platform | growth_plan_run_quota | 5M"
+      }
+    ],
+    "signature": {
+      "instructions": "Extract atomic, verifiable domain facts from exactly one conversational turn pair: the given `user` message and the corresponding `assistant` reply.\n\nRules:\n- Output only `reasoning:` and `facts:` fields as specified below (no other text).\n- Consider only facts that are explicitly supported by the text in this turn pair.\n- Skip questions, requests, politeness, greetings/farewells, speculative statements, and vague/non-verifiable claims.\n- “Atomic” means each line should capture a single, specific fact.\n- Format each fact as: `subject | predicate | object`\n  - Use canonical entity names for `subject` and `object` (avoid pronouns like “it/they/he/she/this/that”).\n  - Use snake_case for `predicate` (e.g., `mentions`, `has_feature`, `uses_integration`, `plans_are_priced_by_run_volume`).\n  - Keep subjects/objects as short canonical strings (no long sentences).\n- Produce one fact per line in `facts`.\n- If no valid facts exist, set `facts` to an empty string.\n\nOutput schema:\n- reasoning: Brief explanation of what was (or wasn’t) considered a verifiable fact in this turn (can be short).\n- facts: newline-separated `subject | predicate | object` triples, or empty string.",
+      "fields": [
+        {
+          "prefix": "User:",
+          "description": "User's message in this turn."
+        },
+        {
+          "prefix": "Assistant:",
+          "description": "Assistant's reply in this turn."
+        },
+        {
+          "prefix": "Reasoning:",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Facts:",
+          "description": "Newline-separated 'subject | predicate | object' triples. Empty string if none."
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.12",
+      "dspy": "3.2.0",
+      "cloudpickle": "3.1"
+    }
+  }
+}

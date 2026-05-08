@@ -25,3 +25,19 @@ tqdm>=4.66.0
 matplotlib>=3.9.0
 seaborn>=0.13.0
 pydantic>=2.9.0
+
+# Week 2: MCP, memory, checkpointing
+mcp>=1.2.0
+fastmcp>=0.4.0
+langgraph-checkpoint-sqlite>=2.0.0
+aiosqlite>=0.20.0
+flask>=3.0.0
+celery>=5.4.0
+redis>=5.0.0
+
+# Week 3: DSPy judge optimization (notebooks/week3/2_dspy_judge_optimization.ipynb)
+dspy-ai>=2.5.0
+# optuna>=4.0.0  # not yet used
+
+# Week 3: significance testing (Wilson CIs, exact McNemar)
+statsmodels>=0.14.0

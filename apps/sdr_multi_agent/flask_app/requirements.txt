@@ -1,0 +1,27 @@
+flask[async]
+flask-cors
+langchain
+langgraph
+langgraph-checkpoint-sqlite
+langgraph-checkpoint-postgres
+aiosqlite
+psycopg[binary,pool]>=3.1
+langchain-mcp-adapters
+langchain-openai
+langchain-anthropic
+langchain-core
+langchain-community
+python-dotenv
+asyncio
+typing-extensions
+pydantic
+websockets
+uvicorn
+httpx
+celery[redis,sqlalchemy]
+psycopg2-binary>=2.9
+kombu
+amqp
+# Memory stack (semantic + episodic chroma collections).
+# Embeddings call OpenRouter's /v1/embeddings via httpx — no torch needed.
+chromadb

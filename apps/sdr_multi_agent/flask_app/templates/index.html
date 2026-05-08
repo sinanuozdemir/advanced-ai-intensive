@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generic Agent - MCP Powered AI Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .memory-bar {
+            width: 100%;
+            max-width: 1500px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            padding: 20px 24px;
+        }
+
+        .memory-bar > summary {
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 16px;
+            color: #2c3e50;
+            list-style: none;
+        }
+
+        .memory-bar > summary::-webkit-details-marker { display: none; }
+
+        .memory-bar-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+            margin: 14px 0;
+        }
+
+        .memory-bar-controls .ctrl {
+            display: flex;
+            flex-direction: column;
+            font-size: 12px;
+            color: #495057;
+            min-width: 180px;
+        }
+
+        .memory-bar-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .memory-bar-grid .memory-table-wrap {
+            max-height: 280px;
+        }
+
+        @media (max-width: 1100px) {
+            .memory-bar-grid { grid-template-columns: 1fr; }
+        }
+
+        .container {
+            max-width: 1500px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            height: 80vh;
+            min-height: 600px;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.8;
+            font-size: 14px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-indicator.connected {
+            background: #28a745;
+        }
+
+        .status-indicator.disconnected {
+            background: #dc3545;
+        }
+
+        .status-indicator.loading {
+            background: #ffc107;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: #007bff;
+            color: white;
+            border-bottom-right-radius: 6px;
+        }
+
+        .message.ai .message-content {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-bottom-left-radius: 6px;
+        }
+
+        .message-meta {
+            font-size: 11px;
+            opacity: 0.6;
+            margin-top: 4px;
+        }
+
+        .tools-used {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .tool-badge {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-right: 4px;
+            font-size: 10px;
+        }
+
+        .input-area {
+            padding: 20px;
+            border-top: 1px solid #e9ecef;
+            background: white;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .message-input {
+            flex: 1;
+            min-height: 20px;
+            max-height: 120px;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 20px;
+            resize: none;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .message-input:focus {
+            border-color: #007bff;
+        }
+
+        .send-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-button:hover:not(:disabled) {
+            background: #0056b3;
+        }
+
+        .send-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .config-section {
+            margin-bottom: 20px;
+        }
+
+        .config-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        .config-select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            background: white;
+            font-size: 14px;
+            color: #495057;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .config-select:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .config-info {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+
+        .sidebar h3 {
+            margin-bottom: 15px;
+            color: #495057;
+            font-size: 16px;
+        }
+
+        .tools-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .tool-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .tool-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #495057;
+        }
+
+        .tool-description {
+            font-size: 12px;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+
+        .init-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .init-button:hover:not(:disabled) {
+            background: #218838;
+        }
+
+        .init-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .subtasks-panel {
+            width: 320px;
+            background: #f8f9fa;
+            border-left: 1px solid #e9ecef;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .subtasks-panel h3 {
+            margin-bottom: 4px;
+            color: #495057;
+            font-size: 16px;
+        }
+
+        .subtasks-panel .panel-help {
+            font-size: 11px;
+            color: #6c757d;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .subtasks-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .subtask-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 12px;
+        }
+
+        .subtask-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .subtask-slug {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .subtask-status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .subtask-status.pending { background: #fff3cd; color: #856404; }
+        .subtask-status.processing { background: #cce5ff; color: #004085; }
+        .subtask-status.success { background: #d4edda; color: #155724; }
+        .subtask-status.failure,
+        .subtask-status.error { background: #f8d7da; color: #721c24; }
+
+        .subtask-task-id {
+            font-family: 'SF Mono', Menlo, monospace;
+            font-size: 10px;
+            color: #6c757d;
+            margin-bottom: 4px;
+            word-break: break-all;
+        }
+
+        .subtask-message {
+            color: #495057;
+            line-height: 1.4;
+            margin-bottom: 4px;
+        }
+
+        .subtask-trace-btn {
+            margin-top: 6px;
+            background: none;
+            border: 1px solid #ced4da;
+            color: #495057;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .subtask-trace-btn:hover { background: #f1f3f5; }
+        .subtask-trace {
+            margin-top: 6px;
+            padding: 6px 8px;
+            background: #fafbfc;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 11px;
+            max-height: 380px;
+            overflow-y: auto;
+        }
+        .trace-msg {
+            padding: 4px 6px;
+            margin-bottom: 4px;
+            border-left: 3px solid #adb5bd;
+            background: #fff;
+            border-radius: 3px;
+        }
+        .trace-msg.system { border-left-color: #6c757d; opacity: 0.7; }
+        .trace-msg.human  { border-left-color: #1971c2; }
+        .trace-msg.ai     { border-left-color: #2f9e44; }
+        .trace-msg.tool   { border-left-color: #e67700; background: #fff8e1; }
+        .trace-role { font-weight: 700; font-size: 10px; text-transform: uppercase; color: #495057; }
+        .trace-content { white-space: pre-wrap; word-break: break-word; margin-top: 2px; }
+        .trace-tool-call {
+            margin-top: 4px;
+            padding: 4px 6px;
+            background: #f1f3f5;
+            border-radius: 3px;
+            font-family: 'SF Mono', Menlo, monospace;
+            font-size: 10px;
+        }
+        .trace-tool-call .tname { color: #c92a2a; font-weight: 700; }
+
+        .subtask-result {
+            margin-top: 6px;
+            padding: 6px 8px;
+            background: #f1f3f5;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #495057;
+            white-space: pre-wrap;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+
+        .subtask-empty {
+            color: #6c757d;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 30px;
+            line-height: 1.5;
+        }
+
+        .memory-details {
+            margin-top: 16px;
+            border-top: 1px solid #e9ecef;
+            padding-top: 12px;
+        }
+
+        .memory-details summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+            list-style: none;
+        }
+
+        .memory-details summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .memory-btn-row {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .memory-btn {
+            background: #5c6bc0;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background-color 0.2s;
+        }
+
+        .memory-btn:hover:not(:disabled) {
+            background: #3f51b5;
+        }
+
+        .memory-btn.reflect {
+            background: #7e57c2;
+        }
+
+        .memory-btn.reflect:hover:not(:disabled) {
+            background: #5e35b1;
+        }
+
+        .memory-table-wrap {
+            max-height: 160px;
+            overflow: auto;
+            margin-bottom: 12px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+        }
+
+        table.memory-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+            table-layout: fixed;
+        }
+
+        table.memory-table th,
+        table.memory-table td {
+            border-bottom: 1px solid #f1f3f5;
+            padding: 6px 8px;
+            text-align: left;
+            vertical-align: top;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        table.memory-table td.mem-id,
+        table.memory-table th.mem-id { width: 56px; font-family: 'SF Mono', Menlo, monospace; }
+        table.memory-table td.mem-thread,
+        table.memory-table th.mem-thread { width: 70px; font-family: 'SF Mono', Menlo, monospace; }
+        table.memory-table td.mem-score,
+        table.memory-table th.mem-score { width: 36px; text-align: right; }
+        table.memory-table td.mem-date,
+        table.memory-table th.mem-date { width: 78px; }
+        table.memory-table td.mem-text,
+        table.memory-table th.mem-text { width: auto; }
+
+        table.memory-table th {
+            background: #f8f9fa;
+            position: sticky;
+            top: 0;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .memory-scope-heading {
+            font-size: 12px;
+            font-weight: 700;
+            color: #495057;
+            margin: 12px 0 6px;
+        }
+
+        @media (max-width: 1100px) {
+            .subtasks-panel { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+        }
+        .message-content table {
+            border-collapse: collapse;
+            margin: 8px 0;
+            font-size: 12px;
+        }
+        .message-content th,
+        .message-content td {
+            border: 1px solid #d0d7de;
+            padding: 4px 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+        .message-content th { background: #f6f8fa; }
+        .message-content code {
+            background: rgba(175, 184, 193, 0.2);
+            padding: 1px 4px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: 'SF Mono', Menlo, monospace;
+        }
+        .message-content pre {
+            background: #f6f8fa;
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+        .message-content pre code {
+            background: transparent;
+            padding: 0;
+        }
+        .message-content h1,
+        .message-content h2,
+        .message-content h3,
+        .message-content h4 {
+            margin: 10px 0 6px;
+            font-weight: 700;
+        }
+        .message-content h1 { font-size: 18px; }
+        .message-content h2 { font-size: 16px; }
+        .message-content h3 { font-size: 14px; }
+        .message-content ul,
+        .message-content ol { margin: 6px 0 6px 20px; }
+        .message-content p { margin: 4px 0; }
+        .message-content blockquote {
+            border-left: 3px solid #d0d7de;
+            padding-left: 10px;
+            color: #57606a;
+            margin: 6px 0;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="config-section">
+                <label class="config-label" for="agentConfigSelect">Agent Configuration</label>
+                <select id="agentConfigSelect" class="config-select">
+                    <option value="">Loading configurations...</option>
+                </select>
+                <div id="configInfo" class="config-info">
+                    Select an agent configuration to customize behavior and available tools.
+                </div>
+            </div>
+
+            <button id="initButton" class="init-button">
+                <span class="status-indicator disconnected"></span>
+                Initialize Agent
+            </button>
+            
+            <h3>Available Tools</h3>
+            <div id="toolsList" class="tools-list">
+                <p style="color: #6c757d; font-size: 14px; text-align: center; margin-top: 20px;">
+                    Initialize the agent to see available tools
+                </p>
+            </div>
+
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <h1>🤖 Generic Agent</h1>
+                <p>MCP-Powered AI Assistant</p>
+            </div>
+
+            <div class="chat-area">
+                <div id="messages" class="messages">
+                    <div class="message ai">
+                        <div class="message-content">
+                            <strong>Welcome to Generic Agent! 👋</strong><br><br>
+                            I'm your configurable AI assistant. I can help you with:
+                            <ul style="margin: 10px 0; padding-left: 20px;">
+                                <li>Research and data analysis</li>
+                                <li>Content and communication generation</li>
+                                <li>Workflow automation</li>
+                                <li>External service integration</li>
+                                <li>Task management and scheduling</li>
+                            </ul>
+                            Select an agent configuration above and initialize to get started!
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-area">
+                    <div class="input-container">
+                        <textarea 
+                            id="messageInput" 
+                            class="message-input" 
+                            placeholder="Type your message here... (e.g., 'Search for technology prospects in San Francisco')"
+                            disabled
+                        ></textarea>
+                        <button id="sendButton" class="send-button" disabled>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="subtasks-panel">
+            <h3>
+                Sub-tasks
+                <button type="button" id="subtasksRefreshBtn" class="memory-btn" style="float:right;font-size:11px;padding:2px 8px;">↻ Refresh</button>
+            </h3>
+            <div class="panel-help">
+                Tasks the supervisor delegated for this conversation. Click ↻ Refresh to re-poll.
+            </div>
+            <div id="subtasksList" class="subtasks-list">
+                <div class="subtask-empty">
+                    No sub-tasks yet. Ask the supervisor to find leads, qualify them, or send emails.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <details class="memory-bar" open>
+        <summary>Long-term memory</summary>
+        <p class="config-info">
+            Inspect scoped stores (semantic / episodic / procedural). Requires
+            <code>USE_MEMORY_AGENT=1</code> for reflection on the selected agent.
+        </p>
+        <div class="memory-bar-controls">
+            <label class="ctrl">
+                Scope
+                <select id="memoryScopeSelect" class="config-select">
+                    <option value="all">all</option>
+                    <option value="supervisor">supervisor</option>
+                    <option value="lead_gen">lead_gen</option>
+                    <option value="qualifier">qualifier</option>
+                    <option value="email">email</option>
+                </select>
+            </label>
+            <button type="button" id="memoryRefreshBtn" class="memory-btn">Refresh stores</button>
+            <button type="button" id="memoryReflectBtn" class="memory-btn reflect">Close thread &amp; reflect</button>
+            <span id="memoryStatus" class="config-info" style="margin-left:auto"></span>
+        </div>
+        <div id="memoryPanels"></div>
+    </details>
+
+    <script>
+        class GenericAgentUI {
+            constructor() {
+                this.isInitialized = false;
+                this.isLoading = false;
+                let saved = null;
+                try { saved = localStorage.getItem('sdrBaseSessionId'); } catch (e) {}
+                if (!saved) {
+                    saved = 'web-' + Date.now();
+                    try { localStorage.setItem('sdrBaseSessionId', saved); } catch (e) {}
+                }
+                this.baseSessionId = saved;
+                this.currentAgentConfig = '';
+                this.agentConfigs = {};
+                this.initElements();
+                this.bindEvents();
+                this.loadAgentConfigs();
+                this.checkHealth();
+                this.startSubtaskPolling();
+            }
+
+            get conversationId() {
+                // Generate unique conversation ID for each agent config
+                const configSuffix = this.currentAgentConfig ? `_${this.currentAgentConfig.replace('.json', '')}` : '_default';
+                return this.baseSessionId + configSuffix;
+            }
+
+            async loadAgentConfigs() {
+                try {
+                    const response = await fetch('/api/agent-configs');
+                    const data = await response.json();
+                    
+                    if (data.success && data.configs) {
+                        this.agentConfigs = data.configs;
+                        this.populateConfigSelect();
+                        this.updateConfigInfo();
+                    } else {
+                        console.error('Failed to load agent configs:', data.error);
+                        // Fallback to default if API fails
+                        this.agentConfigs = {
+                            'agent_config.json': {
+                                name: 'Default Agent',
+                                description: 'Default agent configuration'
+                            }
+                        };
+                        this.populateConfigSelect();
+                        this.updateConfigInfo();
+                    }
+                } catch (error) {
+                    console.error('Error loading agent configs:', error);
+                    // Fallback to default if API fails
+                    this.agentConfigs = {
+                        'agent_config.json': {
+                            name: 'Default Agent',
+                            description: 'Default agent configuration'
+                        }
+                    };
+                    this.populateConfigSelect();
+                    this.updateConfigInfo();
+                }
+            }
+
+            populateConfigSelect() {
+                const select = document.getElementById('agentConfigSelect');
+                select.innerHTML = '';
+
+                // Default option: empty value -> /api/chat receives no
+                // agent_config, so it routes to the supervisor (or whatever
+                // make_agent() builds when USE_SUPERVISOR=0).
+                const supOption = document.createElement('option');
+                supOption.value = '';
+                supOption.textContent = 'Supervisor (default)';
+                select.appendChild(supOption);
+
+                Object.entries(this.agentConfigs).forEach(([filename, config]) => {
+                    const option = document.createElement('option');
+                    option.value = filename;
+                    option.textContent = `${config.name} (debug)`;
+                    select.appendChild(option);
+                });
+
+                select.value = '';
+                this.currentAgentConfig = '';
+                this.agentConfigs[''] = {
+                    name: 'Supervisor',
+                    description: 'Talks to lead-gen, qualifier, and email sub-agents via Celery.'
+                };
+            }
+
+            initElements() {
+                this.initButton = document.getElementById('initButton');
+                this.messageInput = document.getElementById('messageInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.messages = document.getElementById('messages');
+                this.toolsList = document.getElementById('toolsList');
+                this.agentConfigSelect = document.getElementById('agentConfigSelect');
+                this.configInfo = document.getElementById('configInfo');
+                this.subtasksList = document.getElementById('subtasksList');
+                this.memoryScopeSelect = document.getElementById('memoryScopeSelect');
+                this.memoryRefreshBtn = document.getElementById('memoryRefreshBtn');
+                this.memoryReflectBtn = document.getElementById('memoryReflectBtn');
+                this.memoryStatus = document.getElementById('memoryStatus');
+                this.memoryPanels = document.getElementById('memoryPanels');
+            }
+
+            bindEvents() {
+                this.initButton.addEventListener('click', () => this.initializeAgent());
+                this.sendButton.addEventListener('click', () => this.sendMessage());
+                this.agentConfigSelect.addEventListener('change', (e) => this.handleConfigChange(e.target.value));
+                this.memoryRefreshBtn.addEventListener('click', () => this.refreshMemoryStores());
+                this.memoryReflectBtn.addEventListener('click', () => this.reflectMemoryThread());
+                this.messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+                this.messageInput.addEventListener('input', () => this.adjustTextareaHeight());
+            }
+
+            handleConfigChange(newConfig) {
+                // Reset agent state when config changes
+                this.currentAgentConfig = newConfig;
+                this.isInitialized = false;
+                
+                // Reset UI state
+                this.initButton.innerHTML = '<span class="status-indicator disconnected"></span> Initialize Agent';
+                this.initButton.disabled = false;
+                this.messageInput.disabled = true;
+                this.sendButton.disabled = true;
+                
+                // Clear chat history
+                this.clearChat();
+                
+                // Update config info
+                this.updateConfigInfo();
+                
+                // Clear tools display
+                this.toolsList.innerHTML = `
+                    <p style="color: #6c757d; font-size: 14px; text-align: center; margin-top: 20px;">
+                        Initialize the agent to see available tools
+                    </p>
+                `;
+                
+                // Show welcome message for new agent
+                const configName = this.agentConfigs[newConfig]?.name || 'Default Agent';
+                this.addMessage('ai', `Switched to: ${configName}. Click "Initialize Agent" to get started with this configuration.`);
+            }
+
+            updateConfigInfo() {
+                const selectedConfig = this.agentConfigSelect.value;
+                const config = this.agentConfigs[selectedConfig];
+                if (config) {
+                    this.configInfo.innerHTML = `<strong>${config.name}:</strong> ${config.description}`;
+                }
+            }
+
+            adjustTextareaHeight() {
+                this.messageInput.style.height = 'auto';
+                this.messageInput.style.height = Math.min(this.messageInput.scrollHeight, 120) + 'px';
+            }
+
+            async checkHealth() {
+                try {
+                    const response = await fetch('/api/health');
+                    const data = await response.json();
+                    this.updateStatus(data.status === 'healthy' && data.initialized);
+                } catch (error) {
+                    console.error('Health check failed:', error);
+                    this.updateStatus(false);
+                }
+            }
+
+            updateStatus(isHealthy) {
+                const indicator = this.initButton.querySelector('.status-indicator');
+                indicator.className = `status-indicator ${isHealthy ? 'connected' : 'disconnected'}`;
+                
+                if (isHealthy) {
+                    this.isInitialized = true;
+                    this.initButton.innerHTML = '<span class="status-indicator connected"></span> Agent Ready';
+                    this.initButton.disabled = true;
+                    this.messageInput.disabled = false;
+                    this.sendButton.disabled = false;
+                    this.loadTools();
+                }
+            }
+
+            async initializeAgent() {
+                if (this.isLoading) return;
+                
+                this.isLoading = true;
+                this.initButton.disabled = true;
+                
+                const indicator = this.initButton.querySelector('.status-indicator');
+                indicator.className = 'status-indicator loading';
+                this.initButton.innerHTML = '<span class="status-indicator loading"></span> Initializing...';
+
+                try {
+                    const payload = {};
+                    if (this.currentAgentConfig) {
+                        payload.agent_config = this.currentAgentConfig;
+                    }
+
+                    const response = await fetch('/api/initialize', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        this.isInitialized = true;
+                        this.updateStatus(true);
+                        this.displayTools(data.tools);
+                        const configName = this.agentConfigs[this.currentAgentConfig]?.name || 'Default Agent';
+                        this.addMessage('ai', `${configName} initialized successfully! I now have access to ${data.tools_count} tools.`);
+                    } else {
+                        throw new Error(data.error);
+                    }
+                } catch (error) {
+                    console.error('Initialization failed:', error);
+                    this.addMessage('ai', `❌ Failed to initialize agent: ${error.message}`, true);
+                    this.initButton.innerHTML = '<span class="status-indicator disconnected"></span> Retry Initialization';
+                    this.initButton.disabled = false;
+                } finally {
+                    this.isLoading = false;
+                }
+            }
+
+            async loadTools() {
+                try {
+                    const params = new URLSearchParams();
+                    if (this.currentAgentConfig) {
+                        params.append('agent_config', this.currentAgentConfig);
+                    }
+                    
+                    const response = await fetch(`/api/tools?${params}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.displayTools(data.tools);
+                    }
+                } catch (error) {
+                    console.error('Failed to load tools:', error);
+                }
+            }
+
+
+
+            displayTools(tools) {
+                this.toolsList.innerHTML = tools.map(tool => `
+                    <div class="tool-item">
+                        <div class="tool-name">${tool.name}</div>
+                        <div class="tool-description">${tool.description}</div>
+                    </div>
+                `).join('');
+            }
+
+            async sendMessage() {
+                const message = this.messageInput.value.trim();
+                if (!message || this.isLoading) return;
+                
+                this.addMessage('user', message);
+                this.messageInput.value = '';
+                this.adjustTextareaHeight();
+                this.setLoading(true);
+
+                try {
+                    // Build the request payload
+                    const payload = {
+                        message: message,
+                        thread_id: this.conversationId
+                    };
+                    
+                    // Add agent_config if selected
+                    if (this.currentAgentConfig) {
+                        payload.agent_config = this.currentAgentConfig;
+                    }
+
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        this.addMessage('ai', data.response, false, data.tools_used);
+                        this.setLoading(false);
+                        this.fetchSubtasks();
+                    } else {
+                        this.addMessage('ai', `❌ Error: ${data.error}`, true);
+                        this.setLoading(false);
+                    }
+                } catch (error) {
+                    console.error('Chat error:', error);
+                    this.addMessage('ai', `❌ Failed to send message: ${error.message}`, true);
+                    this.setLoading(false);
+                }
+            }
+
+            async pollTaskResult(taskId, maxAttempts = 30) {
+                for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                    try {
+                        const response = await fetch(`/api/async/tasks/${taskId}`);
+                        const data = await response.json();
+
+                        if (data.state === 'SUCCESS') {
+                            this.addMessage('ai', data.result.response, false, data.result.tools_used);
+                            this.setLoading(false);
+                            return;
+                        } else if (data.state === 'FAILURE' || data.state === 'ERROR') {
+                            this.addMessage('ai', `❌ Task failed: ${data.result?.error || 'Unknown error'}`, true);
+                            this.setLoading(false);
+                            return;
+                        }
+                        
+                        // Wait before next poll
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    } catch (error) {
+                        console.error('Polling error:', error);
+                        this.addMessage('ai', `❌ Error checking task status: ${error.message}`, true);
+                        this.setLoading(false);
+                        return;
+                    }
+                }
+                
+                // Timeout
+                this.addMessage('ai', '❌ Task timed out', true);
+                this.setLoading(false);
+            }
+
+            addMessage(type, content, isError = false, toolsUsed = []) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}`;
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                
+                if (isError) {
+                    contentDiv.style.background = '#f8d7da';
+                    contentDiv.style.borderColor = '#f5c6cb';
+                    contentDiv.style.color = '#721c24';
+                }
+                
+                let html;
+                if (window.marked && window.DOMPurify) {
+                    try {
+                        marked.setOptions({ gfm: true, breaks: true });
+                        html = DOMPurify.sanitize(marked.parse(content || ''));
+                    } catch (e) {
+                        html = (content || '').replace(/\n/g, '<br>');
+                    }
+                } else {
+                    html = (content || '')
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        .replace(/\n/g, '<br>');
+                }
+                contentDiv.innerHTML = html;
+                
+                const metaDiv = document.createElement('div');
+                metaDiv.className = 'message-meta';
+                metaDiv.textContent = new Date().toLocaleTimeString();
+                
+                messageDiv.appendChild(contentDiv);
+                
+                if (toolsUsed && toolsUsed.length > 0) {
+                    const toolsDiv = document.createElement('div');
+                    toolsDiv.className = 'tools-used';
+                    toolsDiv.innerHTML = 'Tools used: ' + 
+                        toolsUsed.map(tool => `<span class="tool-badge">${tool}</span>`).join('');
+                    messageDiv.appendChild(toolsDiv);
+                }
+                
+                messageDiv.appendChild(metaDiv);
+                this.messages.appendChild(messageDiv);
+                this.messages.scrollTop = this.messages.scrollHeight;
+            }
+
+            setLoading(isLoading) {
+                this.isLoading = isLoading;
+                this.sendButton.disabled = isLoading || !this.isInitialized;
+                this.messageInput.disabled = isLoading || !this.isInitialized;
+                
+                if (isLoading) {
+                    this.sendButton.innerHTML = '<div class="loading"></div>';
+                } else {
+                    this.sendButton.innerHTML = `
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+                        </svg>
+                    `;
+                }
+            }
+
+            clearChat() {
+                // Keep only the welcome message for the new agent
+                const welcomeMessage = this.messages.querySelector('.message.ai');
+                this.messages.innerHTML = '';
+                if (welcomeMessage) {
+                    this.messages.appendChild(welcomeMessage);
+                }
+            }
+
+            startSubtaskPolling() {
+                this.fetchSubtasks();
+                const refreshBtn = document.getElementById('subtasksRefreshBtn');
+                if (refreshBtn) {
+                    refreshBtn.addEventListener('click', () => this.fetchSubtasks());
+                }
+            }
+
+            async fetchSubtasks() {
+                try {
+                    const convId = encodeURIComponent(this.conversationId);
+                    const response = await fetch(`/api/subtasks/${convId}`);
+                    if (!response.ok) return;
+                    const data = await response.json();
+                    if (data.success) this.renderSubtasks(data.subtasks || []);
+                } catch (e) {
+                    // Silent — polling is best-effort.
+                }
+            }
+
+            renderSubtasks(subtasks) {
+                if (!subtasks.length) {
+                    this.subtasksList.innerHTML = `
+                        <div class="subtask-empty">
+                            No sub-tasks yet. Ask the supervisor to find leads, qualify them, or send emails.
+                        </div>`;
+                    return;
+                }
+                const escape = (s) => (s || '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+                this.subtasksList.innerHTML = subtasks.map(t => {
+                    const status = (t.status || 'PENDING').toLowerCase();
+                    const result = t.result_summary
+                        ? `<div class="subtask-result">${escape(t.result_summary)}</div>`
+                        : '';
+                    const message = (t.message || '').length > 140
+                        ? t.message.slice(0, 140) + '…'
+                        : t.message;
+                    const traceBtn = t.thread_id
+                        ? `<button type="button" class="subtask-trace-btn" data-task-id="${escape(t.task_id)}">▸ trace</button>
+                           <div class="subtask-trace" data-trace-for="${escape(t.task_id)}" style="display:none"></div>`
+                        : '';
+                    return `
+                        <div class="subtask-card">
+                            <div class="subtask-head">
+                                <span class="subtask-slug">${escape(t.agent_slug)}</span>
+                                <span class="subtask-status ${status}">${escape(t.status)}</span>
+                            </div>
+                            <div class="subtask-task-id">${escape(t.task_id)}</div>
+                            <div class="subtask-message">${escape(message)}</div>
+                            ${result}
+                            ${traceBtn}
+                        </div>`;
+                }).join('');
+
+                this.subtasksList.querySelectorAll('.subtask-trace-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => this.toggleTrace(e.currentTarget));
+                });
+            }
+
+            async toggleTrace(btn) {
+                const taskId = btn.dataset.taskId;
+                const panel = this.subtasksList.querySelector(`[data-trace-for="${CSS.escape(taskId)}"]`);
+                if (!panel) return;
+                if (panel.style.display === 'block') {
+                    panel.style.display = 'none';
+                    btn.textContent = '▸ trace';
+                    return;
+                }
+                panel.style.display = 'block';
+                btn.textContent = '▾ trace';
+                if (panel.dataset.loaded !== '1') {
+                    panel.innerHTML = '<em>Loading…</em>';
+                    try {
+                        const r = await fetch(`/api/subtasks/${encodeURIComponent(taskId)}/trace`);
+                        const data = await r.json();
+                        if (!data.success) {
+                            panel.innerHTML = `<em>Error: ${(data.error || 'unknown').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</em>`;
+                            return;
+                        }
+                        panel.innerHTML = this.renderTrace(data.messages || []);
+                        panel.dataset.loaded = '1';
+                    } catch (e) {
+                        panel.innerHTML = `<em>Error: ${e.message}</em>`;
+                    }
+                }
+            }
+
+            renderTrace(messages) {
+                if (!messages.length) return '<em>(no messages recorded)</em>';
+                const escape = (s) => (s == null ? '' : String(s)).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+                const trim = (s, n=1200) => {
+                    s = s == null ? '' : String(s);
+                    return s.length > n ? s.slice(0, n) + '…' : s;
+                };
+                return messages.map((m, i) => {
+                    const role = (m.type || 'msg').toLowerCase();
+                    let body = '';
+                    if (m.content) body += `<div class="trace-content">${escape(trim(m.content))}</div>`;
+                    if (role === 'ai' && Array.isArray(m.tool_calls) && m.tool_calls.length) {
+                        body += m.tool_calls.map(tc => {
+                            const args = tc.args ? JSON.stringify(tc.args, null, 2) : '';
+                            return `<div class="trace-tool-call"><span class="tname">${escape(tc.name || '?')}</span>(${escape(trim(args, 400))})</div>`;
+                        }).join('');
+                    }
+                    let label = role;
+                    if (role === 'tool' && m.name) label = `tool · ${m.name}`;
+                    return `<div class="trace-msg ${role}">
+                                <div class="trace-role">${escape(label)} · #${i + 1}</div>
+                                ${body}
+                            </div>`;
+                }).join('');
+            }
+
+            escapeMemoryCell(s) {
+                return (s == null ? '' : String(s)).replace(
+                    /[&<>]/g,
+                    c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])
+                );
+            }
+
+            buildMemoryTable(columns, rows) {
+                if (!rows.length) {
+                    return '<p class="config-info" style="padding:8px;margin:0">(empty)</p>';
+                }
+                const th = columns.map(
+                    c => `<th class="${c.cls || ''}">${this.escapeMemoryCell(c.label)}</th>`
+                ).join('');
+                const tr = rows.map(cells => '<tr>' + cells.map(
+                    (c, i) => `<td class="${columns[i].cls || ''}">${this.escapeMemoryCell(c)}</td>`
+                ).join('') + '</tr>').join('');
+                return `<table class="memory-table"><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table>`;
+            }
+
+            shortDate(s) {
+                if (!s) return '';
+                const m = String(s).match(/(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
+                return m ? `${m[1].slice(5)} ${m[2]}` : String(s).slice(0, 16);
+            }
+
+            shortId(s, n = 8) {
+                if (!s) return '';
+                const v = String(s);
+                return v.length > n ? v.slice(0, n) + '…' : v;
+            }
+
+            renderMemoryStoreBlock(store) {
+                const counts = store.counts || {};
+                const countLine = `semantic: ${counts.semantic ?? 0} · episodic: ${counts.episodic ?? 0} · procedural: ${counts.procedural ?? 0}`;
+                const sem = this.buildMemoryTable(
+                    [
+                        { label: 'id', cls: 'mem-id' },
+                        { label: 'text', cls: 'mem-text' },
+                        { label: 'thread', cls: 'mem-thread' },
+                        { label: 'when', cls: 'mem-date' },
+                    ],
+                    (store.semantic || []).map(r => [
+                        this.shortId(r.id), r.text, this.shortId(r.thread_id, 10), this.shortDate(r.created_at)
+                    ])
+                );
+                const epi = this.buildMemoryTable(
+                    [
+                        { label: 'id', cls: 'mem-id' },
+                        { label: 'summary', cls: 'mem-text' },
+                        { label: 'thread', cls: 'mem-thread' },
+                        { label: 'score', cls: 'mem-score' },
+                        { label: 'when', cls: 'mem-date' },
+                    ],
+                    (store.episodic || []).map(r => [
+                        this.shortId(r.id), r.summary, this.shortId(r.thread_id, 10), r.score, this.shortDate(r.created_at)
+                    ])
+                );
+                const proc = this.buildMemoryTable(
+                    [
+                        { label: 'name', cls: 'mem-id' },
+                        { label: 'when_to_use', cls: 'mem-text' },
+                        { label: 'fragment', cls: 'mem-text' },
+                        { label: 'score', cls: 'mem-score' },
+                    ],
+                    (store.procedural || []).map(r => [r.name, r.when_to_use, r.fragment_preview, r.score])
+                );
+                return `
+                    <div class="memory-scope-block">
+                        <div class="config-info">${this.escapeMemoryCell(countLine)}</div>
+                        <div class="memory-bar-grid">
+                            <div>
+                                <div class="memory-scope-heading">Semantic</div>
+                                <div class="memory-table-wrap">${sem}</div>
+                            </div>
+                            <div>
+                                <div class="memory-scope-heading">Episodic</div>
+                                <div class="memory-table-wrap">${epi}</div>
+                            </div>
+                            <div>
+                                <div class="memory-scope-heading">Procedural</div>
+                                <div class="memory-table-wrap">${proc}</div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+
+            async refreshMemoryStores() {
+                const scope = this.memoryScopeSelect.value;
+                this.memoryStatus.textContent = 'Loading…';
+                this.memoryPanels.innerHTML = '';
+                try {
+                    const res = await fetch(`/api/memory/stores?scope=${encodeURIComponent(scope)}`);
+                    const data = await res.json();
+                    if (!data.success) {
+                        this.memoryStatus.textContent = data.error || 'Failed to load';
+                        return;
+                    }
+                    this.memoryStatus.textContent = '';
+                    if (scope === 'all' && data.scopes) {
+                        this.memoryPanels.innerHTML = Object.entries(data.scopes).map(([sc, st]) => `
+                            <div class="memory-scope-heading">${this.escapeMemoryCell(sc)}</div>
+                            ${this.renderMemoryStoreBlock(st)}
+                        `).join('');
+                    } else if (data.stores) {
+                        this.memoryPanels.innerHTML = this.renderMemoryStoreBlock(data.stores);
+                    }
+                } catch (e) {
+                    this.memoryStatus.textContent = e.message || String(e);
+                }
+            }
+
+            async reflectMemoryThread() {
+                this.memoryStatus.textContent = 'Running reflection…';
+                try {
+                    const payload = { thread_id: this.conversationId };
+                    if (this.currentAgentConfig) {
+                        payload.agent_config = this.currentAgentConfig;
+                    }
+                    const res = await fetch('/api/memory/reflect', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    });
+                    const data = await res.json();
+                    if (!data.success) {
+                        this.memoryStatus.textContent = data.error || 'Reflect failed';
+                        return;
+                    }
+                    this.memoryStatus.textContent = 'Reflection complete.';
+                    await this.refreshMemoryStores();
+                } catch (e) {
+                    this.memoryStatus.textContent = e.message || String(e);
+                }
+            }
+        }
+
+        // Initialize the UI when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new GenericAgentUI();
+        });
+    </script>
+</body>
+</html> 

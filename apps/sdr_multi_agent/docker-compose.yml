@@ -1,0 +1,205 @@
+services:
+  # Postgres: durable Celery result backend (and optional langgraph checkpointer).
+  postgres:
+    image: postgres:16-alpine
+    container_name: agent-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=agent
+      - POSTGRES_PASSWORD=agent123
+      - POSTGRES_DB=agent
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - agent-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agent -d agent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # RabbitMQ broker for Celery
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: agent-rabbitmq
+    restart: unless-stopped
+    environment:
+      - RABBITMQ_DEFAULT_USER=agent
+      - RABBITMQ_DEFAULT_PASS=agent123
+      - RABBITMQ_DEFAULT_VHOST=/agent
+    ports:
+      - "5672:5672"      # AMQP port
+      - "15672:15672"    # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - agent-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  hubspot-mcp-server:
+    build:
+      context: ./mcp_servers/hubspot_server
+      dockerfile: ../Dockerfile.template
+    platform: linux/amd64
+    container_name: hubspot-mcp-server
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MCP_SERVER_NAME=hubspot-mcp-server
+      - MCP_SERVER_VERSION=1.0.0
+      - HUBSPOT_API_KEY=${HUBSPOT_API_KEY:-your_hubspot_api_key_here}
+    volumes:
+      # Optional: Mount logs directory
+      - ./logs:/app/logs
+    networks:
+      - agent-network
+    # Since MCP typically uses stdio, we'll use docker exec to interact
+    stdin_open: true
+    tty: true
+
+  research-mcp-server:
+    build:
+      context: ./mcp_servers/research_server
+      dockerfile: ../Dockerfile.template
+    platform: linux/amd64
+    container_name: research-mcp-server
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MCP_SERVER_NAME=research-mcp-server
+      - MCP_SERVER_VERSION=1.0.0
+      - SERP_API_KEY=${SERP_API_KEY:-your_serpapi_key_here}
+      - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY:-your_firecrawl_api_key_here}
+    volumes:
+      # Optional: Mount logs directory
+      - ./logs:/app/logs
+    networks:
+      - agent-network
+    # Since MCP typically uses stdio, we'll use docker exec to interact
+    stdin_open: true
+    tty: true
+
+  email-mcp-server:
+    build:
+      context: ./mcp_servers/email_server
+      dockerfile: ../Dockerfile.node
+    platform: linux/amd64
+    container_name: email-mcp-server
+    restart: unless-stopped
+    environment:
+      - RESEND_API_KEY=${RESEND_API_KEY:-your_resend_api_key_here}
+      - SENDER_EMAIL_ADDRESS=${SENDER_EMAIL_ADDRESS:-your_email@example.com}
+      - REPLY_TO_EMAIL_ADDRESSES=${REPLY_TO_EMAIL_ADDRESSES:-your_email@example.com}
+    volumes:
+      # Optional: Mount logs directory
+      - ./logs:/app/logs
+    networks:
+      - agent-network
+    # Since MCP typically uses stdio, we'll use docker exec to interact
+    stdin_open: true
+    tty: true
+
+  # Celery worker for async agent tasks
+  agent-celery-worker:
+    build:
+      context: ./flask_app
+    platform: linux/amd64
+    container_name: agent-celery-worker
+    restart: unless-stopped
+    command: celery -A celery_app.celery worker --loglevel=info --concurrency=2
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      # Celery configuration
+      - CELERY_BROKER_URL=amqp://agent:agent123@rabbitmq:5672/%2Fagent
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-db+postgresql://agent:agent123@postgres:5432/agent}
+      # API Keys - set these in .env file (see .env.example)
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-your_openrouter_api_key_here}
+      # Optional LangSmith tracing
+      - LANGSMITH_TRACING=${LANGSMITH_TRACING:-true}
+      - LANGSMITH_ENDPOINT=${LANGSMITH_ENDPOINT:-https://api.smith.langchain.com}
+      - LANGSMITH_API_KEY=${LANGSMITH_API_KEY:-your_langsmith_api_key_here}
+      - LANGSMITH_PROJECT=${LANGSMITH_PROJECT:-ai-agent}
+      # Shared writable data dir (mounted below); also picked up by subtask_log.
+      - AGENT_DATA_ROOT=/app/runtime
+    volumes:
+      - ./flask_app:/app
+      # The shared `src/` package (memory, shared, middleware, ...) lives at
+      # the repo root. Mount it read-only at /app/src so memory_agent.py can
+      # `from shared import ...` and `from memory import ...` inside the
+      # container. Without this the supervisor + memory agent both fail.
+      - ../../src:/app/src:ro
+      # Writable runtime data: SQLite checkpoints, subtask log, semantic /
+      # episodic chroma stores. Pinned via AGENT_DATA_ROOT so it survives
+      # restarts and is shared between the worker and the flask app.
+      - ./data:/app/runtime
+      - /var/run/docker.sock:/var/run/docker.sock  # For Docker-in-Docker access
+    networks:
+      - agent-network
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+
+  agent-flask-app:
+    build:
+      context: ./flask_app
+    platform: linux/amd64
+    container_name: agent-flask-app
+    restart: unless-stopped
+    ports:
+      - "8080:5000"
+    env_file:
+      - .env
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=true
+      - PYTHONUNBUFFERED=1
+      # Celery configuration
+      - CELERY_BROKER_URL=amqp://agent:agent123@rabbitmq:5672/%2Fagent
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-db+postgresql://agent:agent123@postgres:5432/agent}
+      # API Keys - set these in .env file (see .env.example)
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-your_openrouter_api_key_here}
+      # Optional LangSmith tracing
+      - LANGSMITH_API_KEY=${LANGSMITH_API_KEY:-your_langsmith_api_key_here}
+      - LANGSMITH_TRACING=${LANGSMITH_TRACING:-true}
+      - LANGSMITH_ENDPOINT=${LANGSMITH_ENDPOINT:-https://api.smith.langchain.com}
+      - LANGSMITH_PROJECT=${LANGSMITH_PROJECT:-ai-agent}
+      # Same shared runtime dir as the worker so both processes see the same
+      # subtask log, checkpoints, and memory stores.
+      - AGENT_DATA_ROOT=/app/runtime
+    volumes:
+      - ./flask_app:/app
+      - ../../src:/app/src:ro
+      - ./data:/app/runtime
+      - /var/run/docker.sock:/var/run/docker.sock  # For Docker-in-Docker access
+    networks:
+      - agent-network
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      hubspot-mcp-server:
+        condition: service_started
+      research-mcp-server:
+        condition: service_started
+      email-mcp-server:
+        condition: service_started
+
+networks:
+  agent-network:
+    driver: bridge
+
+volumes:
+  logs:
+  rabbitmq_data:
+  postgres_data:

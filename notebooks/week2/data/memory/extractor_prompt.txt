@@ -1,0 +1,67 @@
+Extract atomic, verifiable domain facts from exactly one conversational turn pair: the given `user` message and the corresponding `assistant` reply.
+
+Rules:
+- Output only `reasoning:` and `facts:` fields as specified below (no other text).
+- Consider only facts that are explicitly supported by the text in this turn pair.
+- Skip questions, requests, politeness, greetings/farewells, speculative statements, and vague/non-verifiable claims.
+- “Atomic” means each line should capture a single, specific fact.
+- Format each fact as: `subject | predicate | object`
+  - Use canonical entity names for `subject` and `object` (avoid pronouns like “it/they/he/she/this/that”).
+  - Use snake_case for `predicate` (e.g., `mentions`, `has_feature`, `uses_integration`, `plans_are_priced_by_run_volume`).
+  - Keep subjects/objects as short canonical strings (no long sentences).
+- Produce one fact per line in `facts`.
+- If no valid facts exist, set `facts` to an empty string.
+
+Output schema:
+- reasoning: Brief explanation of what was (or wasn’t) considered a verifiable fact in this turn (can be short).
+- facts: newline-separated `subject | predicate | object` triples, or empty string.
+
+Examples:
+
+USER:
+Thanks, talk soon.
+
+ASSISTANT:
+Talk soon!
+
+FACTS:
+
+
+USER:
+Hi, I'm Anna from Acme Corp. We're a 250-person fintech in Berlin, and I'm the VP of Engineering. Tell me how your tool helps teams like ours.
+
+ASSISTANT:
+Hi Anna—thanks! For teams like Acme (250-person fintech), our LLM agent observability platform captures every run’s prompts, tool calls, retrieval context, traces, and outcomes so you can pinpoint failure causes (e.g., bad retrieval, tool errors, prompt regressions) and track reliability over time. If you share your stack (e.g., LangChain/LlamaIndex, OpenAI/Anthropic, where logs live) and current requirements (SLA, debugging workflow, compliance), those specifics are saved into the agent’s semantic memory so future recommendations map directly to your setup. We typically price per active workspace/month, often starting around ~$500–$1,500/month depending on volume and retention.
+
+FACTS:
+Acme Corp | described_as | 250-person fintech
+Acme Corp | headquartered_in | Berlin
+Agent semantic memory | maps_recommendations_to | the user setup
+Agent semantic memory | saves | where logs live and compliance and debugging workflow requirements
+Agent semantic memory | stores | stack specifics and requirements provided by the user
+Anna | affiliated_with | Acme Corp
+Anna | job_title | VP of Engineering
+LLM agent observability platform | captures | outcomes for every run
+LLM agent observability platform | captures | prompts for every run
+LLM agent observability platform | captures | retrieval context for every run
+LLM agent observability platform | captures | tool calls for every run
+LLM agent observability platform | captures | traces for every run
+LLM agent observability platform | enables | pinpointing failure causes
+LLM agent observability platform | enables_tracking | reliability over time
+LLM agent observability platform | pinpoints_failure_causes_related_to | bad retrieval
+LLM agent observability platform | pinpoints_failure_causes_related_to | prompt regressions
+LLM agent observability platform | pinpoints_failure_causes_related_to | tool errors
+Pricing | is_based_on | active workspace/month
+Pricing | typical_starting_range_usd_per_month | 500-1500
+Recommendation system | supports | LangChain/LlamaIndex and OpenAI/Anthropic integrations
+
+USER:
+We're currently using LangChain in production but the observability has been painful. We process about 4M agent runs a month.
+
+ASSISTANT:
+Got it—4M runs/month is exactly the kind of scale where “painful” observability usually comes from missing end-to-end traces (prompt→retrieval→tool calls→final answer) and weak aggregation/alerting. We ingest LangChain agent events plus tool/retrieval artifacts, build queryable traces and reliability dashboards (latency, error rate, tool failure modes, retrieval quality), and let you do diffing/regression checks so you can see what changed. Also, I’ll store that you’re on LangChain in production with ~4M runs/month so the next time you ask about setup or optimizations, recommendations are grounded in your exact context.
+
+FACTS:
+User | operates_in_production | LangChain
+User | processes_about | 4M agent runs per month
+User | uses | LangChain

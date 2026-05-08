@@ -1,0 +1,63 @@
+# Fly.io config for the SDR multi-agent app (week 2 capstone).
+#
+# Layout: a single Fly app runs the Flask web process + the Celery worker as
+# two processes in the same VM. On Fly the HubSpot MCP server is launched as a
+# stdio subprocess of the agent (no separate container), unlike Compose where
+# the supervisor uses `docker exec` into a sibling `hubspot-mcp-server`.
+# Postgres comes from `fly postgres create` and is wired in via DATABASE_URL.
+# Celery broker + result backend come from `fly redis create` and are wired in
+# via CELERY_BROKER_URL / CELERY_RESULT_BACKEND secrets.
+
+app = "forge-sdr-app"      # rename via `fly apps create <name>`
+primary_region = "iad"
+kill_signal  = "SIGINT"
+kill_timeout = "30s"
+
+[build]
+  # Build context must be the REPO ROOT so the Dockerfile can COPY src/.
+  # Run `fly deploy --dockerfile apps/sdr_multi_agent/deploy/Dockerfile`
+  # from the repo root.
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  FLASK_DEBUG = "false"
+  USE_MEMORY_AGENT = "1"
+  AGENT_DATA_ROOT = "/data"
+  PYTHONUNBUFFERED = "1"
+
+[processes]
+  web    = "gunicorn -k gevent -w 2 -b 0.0.0.0:8080 app:app"
+  worker = "celery -A celery_app.celery worker --loglevel=info --concurrency=2"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 8080
+  processes = ["web"]
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [services.concurrency]
+    type = "requests"
+    hard_limit = 50
+    soft_limit = 25
+
+  [[services.tcp_checks]]
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "30s"
+
+[[mounts]]
+  source = "sdr_data"
+  destination = "/data"
+  processes = ["web", "worker"]
+
+[deploy]
+  release_command = "python -c 'from memory_agent import make_agent; print(\"memory_agent importable\")'"

@@ -1,0 +1,27 @@
+{
+  "name": "Lead Generation Agent",
+  "description": "Configurable AI Assistant with MCP Tool Integration",
+  "mcp_servers": {
+    "hubspot-server": {
+      "enabled": true,
+      "description": "HubSpot CRM integration for contact creation",
+      "command": "docker",
+      "args": ["exec", "-i", "hubspot-mcp-server", "python", "/app/mcp_server.py"],
+      "transport": "stdio"
+    },
+    "research-server": {
+      "enabled": true,
+      "description": "Web search and scraping tools using SerpAPI and Firecrawl",
+      "command": "docker",
+      "args": ["exec", "-i", "research-mcp-server", "python", "/app/mcp_server.py"],
+      "transport": "stdio"
+    }
+  },
+  "agent_settings": {
+    "extra_instructions": "You are a lead generator. I need you to find professors/lecturers of universities that speak English and teach Data Science, ML, AI, etc. Leads you find should potentially be able to use my book in their classes. Find as much information as you can about the classes they teach, their research, and their publications.\n\nHubSpot pipeline rule: every brand-new contact you create from lead generation must be given lead status **New** (not Open, Unqualified, or Connected). If you update an existing contact as part of research, only set **New** when you are treating them as a freshly surfaced prospect entering the pipeline.\n\nWhen you find a suitable lead, you must do the following in order:\n\n1. Create a HubSpot contact for them with the email you found.\n\n2. Add a note with as much information as you can about the lead, including where you found their email, links to their research and publications, personal website, and any other relevant information.\n\n3. Ensure their email address is on the contact.\n\n4. Set their HubSpot lead status to **New**. Do not skip this step.\n\nFollow these steps in order and do not skip any steps.",
+    "model": "openai/gpt-4.1",
+    "temperature": 0.3,
+    "max_tokens": 4000,
+    "casual_tone": true
+  }
+} 
