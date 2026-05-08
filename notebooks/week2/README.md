@@ -5,7 +5,7 @@ Multi-agent topologies, MCP, long-term memory, context compression, checkpointin
 ## What's different from Week 1
 
 - Production code lives in `src/`; notebooks are thin walkthroughs that call into it.
-- Two real apps ship at the end: **Forge** (local Electron) and **SDR** (Fly.io).
+- Two real apps ship at the end: **Forge** (local Electron) and **SDR** (local Docker Compose now; cloud deploy moves to Week 3).
 - Notebooks run against real LLM calls. No faked data.
 
 ## Segment → notebook → src
@@ -17,7 +17,7 @@ Multi-agent topologies, MCP, long-term memory, context compression, checkpointin
 | 3 | Long-term memory: semantic, episodic, procedural | `2_memory_systems.ipynb` | `src/memory/` |
 | 4 | Context compression: which strategies survive contact with reality? | `3_context_compression.ipynb` | `src/middleware/` |
 | 5 | Context management at scale: checkpointing & resume | `4_checkpointing_resumable.ipynb` | `src/shared/checkpointer.py` |
-| 6 | Capstone: deploying the SDR app | _no notebook_ — read & run `apps/sdr_multi_agent/` | `apps/sdr_multi_agent/` + `apps/sdr_multi_agent/deploy/README.md` |
+| 6 | Capstone: the SDR app wired up | _no notebook_ — read & run `apps/sdr_multi_agent/` | `apps/sdr_multi_agent/` |
 
 ## Run order
 
@@ -28,7 +28,7 @@ Independent enough to read in any order. To feel a build:
 3. `2_memory_systems` — `semantic_write` / `semantic_search` tools; episodic + procedural reflection.
 4. `3_context_compression` — bake-off of summarization strategies under a rule-survival torture test.
 5. `4_checkpointing_resumable` — crash recovery, history, time-travel, HITL.
-6. **Capstone** — `cd apps/sdr_multi_agent && docker compose up`, then ship to Fly via `apps/sdr_multi_agent/deploy/README.md`.
+6. **Capstone** — `cd apps/sdr_multi_agent && docker compose up`. Cloud deploy is deferred to Week 3.
 
 > **Deferred to Week 3.** The DSPy MIPROv2 notebook from a prior version optimized a triple-based fact extractor. Semantic memory is now natural-language and tool-driven; triple-F1 is no longer the right objective. DSPy returns in Week 3 against an NL memory + retrieval metric.
 
@@ -60,20 +60,15 @@ cd apps/forge && npm install && npm run dev
 
 See `apps/forge/README.md` for architecture and `apps/forge/sample_repo/` for the demo project.
 
-### SDR — cloud-deployed multi-agent SDR
+### SDR — local multi-agent SDR (Flask + Celery + MCP)
 
 ```bash
-fly apps create forge-sdr-app
-fly postgres create --name forge-sdr-pg
-fly postgres attach --app forge-sdr-app forge-sdr-pg
-fly secrets set --app forge-sdr-app \
-    OPENROUTER_API_KEY=... HUBSPOT_API_KEY=... \
-    USE_MEMORY_AGENT=1 USE_SUPERVISOR=1
-fly deploy --config apps/sdr_multi_agent/deploy/fly.toml \
-           --dockerfile apps/sdr_multi_agent/deploy/Dockerfile
+cd apps/sdr_multi_agent
+docker compose up      # flask app + postgres + rabbitmq + celery worker + MCP servers
+# UI at http://localhost:8080
 ```
 
-Walkthrough: `apps/sdr_multi_agent/deploy/README.md`. Architecture: `apps/sdr_multi_agent/README.md`.
+Architecture: `apps/sdr_multi_agent/README.md`. Cloud deploy is deferred to Week 3.
 
 ## Recap
 

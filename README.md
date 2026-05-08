@@ -80,7 +80,16 @@ The Week 1 spine is an **adaptive RAG loop** (`retrieve -> rerank -> grade -> ga
 
 ### Week 2 — Multi-Agent Systems, MCP, and Memory
 
-Coming soon. Notebooks live under [`notebooks/week2/`](notebooks/week2/). The `gap_analyzer` node from Week 1's capstone evolves into a supervisor that delegates sub-queries to specialist research agents, with MCP-powered tool orchestration, CLI-vs-MCP coding-agent trade-offs, long-term memory (episodic / semantic / procedural), and resumable LangGraph workflows with checkpointing.
+| #   | Notebook                                                                                  | Course segment |
+|-----|-------------------------------------------------------------------------------------------|----------------|
+| 0   | [`0_supervisor_vs_solo.ipynb`](notebooks/week2/0_supervisor_vs_solo.ipynb)                | S1 — Solo / supervisor / hierarchical / peer topologies, measured |
+| 1   | [`1_mcp_orchestration.ipynb`](notebooks/week2/1_mcp_orchestration.ipynb)                  | S2 — MCP + tool orchestration: four wiring patterns, baked off |
+| 2   | [`2_memory_systems.ipynb`](notebooks/week2/2_memory_systems.ipynb)                        | S3 — Long-term memory: semantic, episodic, procedural |
+| 3   | [`3_context_compression.ipynb`](notebooks/week2/3_context_compression.ipynb)              | S4 — Context compression: 5-strategy bake-off under rule-survival |
+| 4   | [`4_checkpointing_resumable.ipynb`](notebooks/week2/4_checkpointing_resumable.ipynb)      | S5 — Checkpointing: crash recovery, history, time-travel, HITL |
+| —   | [`apps/sdr_multi_agent/`](apps/sdr_multi_agent/)                                          | S6 — Capstone: supervisor + memory + checkpointing in one Flask/Celery app |
+
+Production code lives in [`src/`](src/) (`multi_agent/`, `mcp_demo/`, `memory/`, `middleware/`, `shared/`); the notebooks are thin walkthroughs that call into it. The capstone wires the same primitives into a real SDR app behind `USE_SUPERVISOR=1` and `USE_MEMORY_AGENT=1`. See [`notebooks/week2/README.md`](notebooks/week2/README.md) for run order, costs, and architecture.
 
 ### Week 3 — Evaluation, Observability, and Deployment
 
@@ -120,8 +129,19 @@ notebooks/
     judges.py         # Pydantic rubrics + LLM-as-judge helpers
     eval_harness.py   # Multi-variant x multi-model evaluation runner
     data/             # gitignored: corpus_cache, chroma_db, gold_set, results
-  week2/  (placeholder)
+  week2/
+    0_supervisor_vs_solo.ipynb  ...  4_checkpointing_resumable.ipynb
+    _path_setup.py    # adds repo root to sys.path so notebooks import src/
+    data/             # gitignored: memory stores, checkpoint sqlite, bake-off CSVs
   week3/  (placeholder)
+src/                  # production code shared across week 2 notebooks + apps
+  multi_agent/        # solo / supervisor / hierarchical / peer topologies
+  mcp_demo/           # teaching MCP server + 4 client wiring patterns
+  memory/             # semantic / episodic / procedural + reflection
+  middleware/         # conversation-compression AgentMiddleware classes
+  shared/             # checkpointer factory + OpenRouter LLM helpers
+apps/
+  sdr_multi_agent/    # Week 2 capstone: Flask + Celery + MCP + supervisor
 ```
 
 ## Instructor

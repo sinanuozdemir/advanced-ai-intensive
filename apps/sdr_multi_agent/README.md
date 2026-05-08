@@ -22,7 +22,8 @@ ideas from the segment without rewriting the agent loop:
 | Multi-agent topology (S0) | Supervisor agent that delegates to the three sub-agents via Celery  | `flask_app/supervisor.py`       |
 | Long-term memory (S3)     | Embedding-based semantic recall + end-of-thread reflection          | `flask_app/memory_agent.py`     |
 | Checkpointing (S5)        | Async SQLite/Postgres checkpointer instead of `MemorySaver`         | `flask_app/memory_agent.py`     |
-| Cloud deploy              | `fly.toml` + secrets for OpenRouter, HubSpot, Postgres              | `deploy/`                       |
+
+> Cloud deploy is deferred to **Week 3** alongside the broader deployment + observability segment.
 
 
 The `MemoryAgent` class in `flask_app/memory_agent.py` is a subclass of
@@ -44,25 +45,14 @@ docker compose up        # spins flask app, postgres, rabbitmq, celery worker, M
 To opt in to the MemoryAgent upgrades, set `USE_MEMORY_AGENT=1` in your
 environment before launching.
 
-## Deploy to Fly.io
-
-See `deploy/README.md` for the full walkthrough.
-
-```bash
-cd apps/sdr_multi_agent/deploy
-fly launch --copy-config --name forge-sdr-app
-fly secrets set OPENROUTER_API_KEY=... HUBSPOT_API_KEY=...
-fly deploy
-```
-
 ## How MemoryAgent plugs in
 
 The base `GenericAgent` is unmodified. `flask_app/memory_agent.py`
 defines `MemoryAgent`, which subclasses it and wires in:
 
 - `make_async_sqlite_checkpointer` / `make_async_postgres_checkpointer` from
-  `src/shared/checkpointer.py` (SQLite locally, Postgres on Fly.io once
-  `DATABASE_URL` is set).
+  `src/shared/checkpointer.py` (SQLite locally; switches to Postgres
+  automatically when `DATABASE_URL` is set).
 - `SemanticMemory`, `EpisodicMemory`, `ProceduralMemory` from `src/memory/`,
   partitioned per agent under `AGENT_DATA_ROOT/<memory_scope>/`.
 - `reflect_on_thread()` at end-of-thread for episodic + procedural writes.
