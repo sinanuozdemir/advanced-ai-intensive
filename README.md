@@ -37,32 +37,6 @@ Run [`notebooks/week1/0_build_corpus.ipynb`](notebooks/week1/0_build_corpus.ipyn
 python3 -m jupyter notebook
 ```
 
-## OpenRouter as the multi-model backbone
-
-Every notebook calls models through a single helper:
-
-```python
-from llm import get_llm
-
-llm = get_llm("cheap_workhorse")        # by named role
-llm = get_llm("openai/gpt-5.5")         # or by raw OpenRouter slug
-```
-
-Named roles in `notebooks/week1/llm.py`:
-
-| Role                 | Default slug                                  |
-|----------------------|-----------------------------------------------|
-| `cheap_workhorse`    | `openai/gpt-5.4-nano`                         |
-| `frontier_chat`      | `anthropic/claude-opus-4.7`                   |
-| `frontier_openai`    | `openai/gpt-5.5`                              |
-| `frontier_anthropic` | `anthropic/claude-opus-4.7`                   |
-| `reasoning_openai`   | `openai/o4-mini`                              |
-| `reasoning_open`     | `moonshotai/kimi-k2-thinking`                 |
-| `open_weight`        | `qwen/qwen3.6-35b-a3b`                        |
-| `fast_open`          | `x-ai/grok-4.1-fast`                          |
-
-Slugs verified against OpenRouter on 2026-04-28. They're tweakable in one place — swap them in `notebooks/week1/llm.py` as the catalog evolves.
-
 ## Notebooks
 
 ### Week 1 — Advanced Workflows, RAG, and Context
