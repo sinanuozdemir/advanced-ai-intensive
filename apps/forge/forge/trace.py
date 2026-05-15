@@ -102,8 +102,16 @@ class Tracer:
         line = json.dumps(event, ensure_ascii=False, default=str) + "\n"
         if self.enabled:
             with self._lock:
-                with self.path.open("a", encoding="utf-8") as fh:
-                    fh.write(line)
+                try:
+                    with self.path.open("a", encoding="utf-8") as fh:
+                        fh.write(line)
+                except FileNotFoundError:
+                    # The parent dir was deleted out from under us (the
+                    # eval runner rmtree's its temp workspace; a
+                    # background reflection task can race with that).
+                    # Drop the event silently rather than blowing up an
+                    # async task and spamming a stack trace.
+                    pass
         for sub in list(self._subs):
             try:
                 rv = sub(event)

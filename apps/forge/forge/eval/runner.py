@@ -6,6 +6,18 @@ declared), scores the answer via the inlined task-success rubric, prints
 pass/fail + an overall success rate. CSV side-effect at
 ``<repo>/.forge/eval_results/<timestamp>.csv``.
 
+Single topology only. Earlier versions of Forge had a ``solo`` /
+``supervisor`` split and this runner used to sweep across both; we
+collapsed everything into one main agent + delegation tools, so each
+task is now scored once. The ``topology`` field on ``EvalRow`` and
+``TaskResult`` is kept ("main") for CSV/back-compat but is no longer
+printed in the CLI output.
+
+End-of-turn reflection is disabled in eval — the per-task workspace is
+a temp dir that gets rmtree'd at the end of the task, so reflection
+has nowhere durable to write, and a background reflection task can
+race with that cleanup.
+
 Public surface:
 
     run_eval_cli(paths, cfg, *, limit=None) -> int   # used by `forge eval`
@@ -174,7 +186,12 @@ async def _run_one(
     cfg.models = base_cfg.models
     cfg.compaction = base_cfg.compaction
     cfg.permissions = base_cfg.permissions
-    cfg.memory = base_cfg.memory
+    # Per-task workspaces are temp dirs that get rmtree'd at the end of
+    # _run_one — reflection has nowhere durable to write and the
+    # background task can race with the cleanup (FileNotFoundError on
+    # trace.jsonl). Disable it for eval; we're scoring the main agent's
+    # answer, not its memory write-back.
+    cfg.memory = base_cfg.memory.model_copy(update={"reflect_on_thread_end": False})
 
     # Build the RAG index over the fixture so repo_rag_hybrid_retrieve works.
     # Cheap on a small fixture; ignored on first-call errors.
@@ -286,7 +303,7 @@ def run_eval_cli(
     print()
     for r in rows:
         mark = "PASS" if r.passed else ("ERR " if r.error else "FAIL")
-        line = f"  [{mark}] {r.task_id:<28} score={r.score:.2f} t={r.elapsed_s:.1f}s topo={r.topology}"
+        line = f"  [{mark}] {r.task_id:<28} score={r.score:.2f} t={r.elapsed_s:.1f}s"
         if r.error:
             line += f" err={r.error[:80]}"
         print(line)
