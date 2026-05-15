@@ -5,6 +5,7 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 .DS_Store
+.pytest_cache/
 
 notebooks/*/data/corpus_cache/
 notebooks/*/data/chroma_db/
@@ -14,6 +15,10 @@ notebooks/*/data/results_*.csv
 !notebooks/*/data/results_demo.csv
 !notebooks/*/data/gold_set.jsonl
 
+# Week 3 timestamped run artifacts (gold sets + final result CSVs stay tracked)
+notebooks/week3/data/plan_act_bakeoff_*.csv
+notebooks/week3/data/trajectory_probe_*
+
 .idea/
 .vscode/
 *.egg-info/
@@ -22,3 +27,15 @@ dist/
 
 apps/sdr_multi_agent/data/*
 data/*
+
+# Electron app build artifacts
+apps/forge/electron/node_modules/
+apps/forge/electron/out/
+apps/forge/electron/release/
+apps/forge/electron/package-lock.json
+
+# Forge per-repo runtime workspace — rebuilt at runtime on fresh clones.
+.forge/
+
+# agent_api runtime state (logs + SQLite artifact store)
+apps/agent_api/runtime/
