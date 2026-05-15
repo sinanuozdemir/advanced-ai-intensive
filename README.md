@@ -65,9 +65,19 @@ The Week 1 spine is an **adaptive RAG loop** (`retrieve -> rerank -> grade -> ga
 
 Production code lives in [`src/`](src/) (`multi_agent/`, `mcp_demo/`, `memory/`, `middleware/`, `shared/`); the notebooks are thin walkthroughs that call into it. The capstone wires the same primitives into a real SDR app behind `USE_SUPERVISOR=1` and `USE_MEMORY_AGENT=1`. See [`notebooks/week2/README.md`](notebooks/week2/README.md) for run order, costs, and architecture.
 
-### Week 3 — Evaluation, Observability, and Deployment
+### Week 3 — Evaluation, Memory at Scale, and a Capstone Agent
 
-Coming soon. Notebooks live under [`notebooks/week3/`](notebooks/week3/). The `eval_harness.py` from Week 1 generalizes into the agent harness for benchmarking SWE-bench / GAIA-style tasks, paired with LangSmith tracing, human-in-the-loop guardrails, and deployment patterns (containers, cost/latency, monitoring).
+| #   | Notebook                                                                                          | Course segment |
+|-----|---------------------------------------------------------------------------------------------------|----------------|
+| 1   | [`1_judge_meta_eval.ipynb`](notebooks/week3/1_judge_meta_eval.ipynb)                              | S1 — LLM-as-judge as a system to evaluate: agreement, fluency / confidence / format / search-evidence biases |
+| 2   | [`2_dspy_judge_optimization.ipynb`](notebooks/week3/2_dspy_judge_optimization.ipynb)              | S2 — Optimizing the judge with DSPy `BootstrapFewShotWithRandomSearch` on a probe-weighted metric |
+| 3   | [`3_memory_benchmarks.ipynb`](notebooks/week3/3_memory_benchmarks.ipynb)                          | S3 — Benchmarking semantic / episodic / procedural memory: recall, latency, cost, just-in-time skill recall |
+| 4   | [`4_plan_act_bakeoff.ipynb`](notebooks/week3/4_plan_act_bakeoff.ipynb)                            | S4 — Plan-then-act vs. act-only vs. trajectory-probe routing: paired McNemar across 5 policies |
+| 5   | [`5_agent_workflow_api.ipynb`](notebooks/week3/5_agent_workflow_api.ipynb)                        | S5 — Shipping an agentic workflow as a real service (deploy + smoke-test the `agent_api` app) |
+| —   | [`apps/agent_api/`](apps/agent_api/)                                                              | S5 paired app — FastAPI plan/research/reflect/artifact workflow with SerpAPI + Firecrawl, Prometheus metrics, SQLite artifact store, and a FastMCP wrapper |
+| —   | [`apps/forge/`](apps/forge/)                                                                      | S6 — Capstone: Forge, an end-to-end coding agent (Electron UI + FastAPI backend) with 3-tier memory, per-thread LLM-as-judge evals, async reflection, MCP install/uninstall, and persistent + ephemeral sub-agents |
+
+The Week 3 throughline is that **the eval is the product**: every claim about a judge, a memory tier, or a planning policy needs paired comparisons and a probe-weighted metric, not vibes. Notebooks 1–2 expose biases in the judge and then optimize it; notebooks 3–4 turn that lens on memory and on the plan-vs-act choice; notebooks 5 + the two apps ship those lessons into a real service and a real agent. See [`notebooks/week3/README.md`](notebooks/week3/README.md) and [`apps/forge/README.md`](apps/forge/README.md) for run order, costs, and architecture.
 
 ## Prerequisites
 
@@ -107,15 +117,25 @@ notebooks/
     0_supervisor_vs_solo.ipynb  ...  4_checkpointing_resumable.ipynb
     _path_setup.py    # adds repo root to sys.path so notebooks import src/
     data/             # gitignored: memory stores, checkpoint sqlite, bake-off CSVs
-  week3/  (placeholder)
-src/                  # production code shared across week 2 notebooks + apps
+  week3/
+    1_judge_meta_eval.ipynb  ...  5_agent_workflow_api.ipynb
+    bakeoff_lib.py    # paired McNemar harness for the plan/act bake-off
+    judge_eval.py     # probe-weighted runner against the judge gold set
+    plan_act_alts.py  # alternative policies under test in notebook 4
+    data/             # gold sets + optimized judge prompts tracked; timestamped run CSVs gitignored
+src/                  # production code shared across week 2/3 notebooks + apps
   multi_agent/        # solo / supervisor / hierarchical / peer topologies
   mcp_demo/           # teaching MCP server + 4 client wiring patterns
   memory/             # semantic / episodic / procedural + reflection
   middleware/         # conversation-compression AgentMiddleware classes
-  shared/             # checkpointer factory + OpenRouter LLM helpers
+  shared/             # checkpointer factory + OpenRouter + Ollama LLM helpers
 apps/
   sdr_multi_agent/    # Week 2 capstone: Flask + Celery + MCP + supervisor
+  agent_api/          # Week 3 S5: FastAPI plan/research/reflect/artifact + FastMCP wrapper
+  forge/              # Week 3 capstone: Electron + FastAPI coding agent
+                      #   forge/        Python backend (engine, memory, eval, MCP, server, TUI)
+                      #   electron/     React/TS UI (Chat, Memory, Eval, Agents, MCP, Settings)
+                      #   mcp_servers/  built-in fs/git/shell/code/repo_rag MCP servers
 ```
 
 ## Instructor
