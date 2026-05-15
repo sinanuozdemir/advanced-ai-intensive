@@ -1,0 +1,25 @@
+{"id": "f01", "fact": "The user prefers TypeScript over JavaScript for new frontend projects.", "queries": ["which language should I use for the new frontend?", "frontend language preference"]}
+{"id": "f02", "fact": "The user's company name is Northwind Robotics.", "queries": ["what is the user's employer?", "where does the user work?"]}
+{"id": "f03", "fact": "The user's primary timezone is America/Los_Angeles (PST/PDT).", "queries": ["what timezone is the user in?", "when is the user's local 9am?"]}
+{"id": "f04", "fact": "Sinan published the Quick Start Guide to Large Language Models with Pearson.", "queries": ["who published Sinan's LLM book?", "publisher of the LLM book"]}
+{"id": "f05", "fact": "The team uses Postgres with the pgvector extension for embeddings.", "queries": ["what vector database does the team use?", "where are embeddings stored?"]}
+{"id": "f06", "fact": "Production services are deployed to Fly.io with multi-region failover.", "queries": ["where is production hosted?", "deployment platform"]}
+{"id": "f07", "fact": "The user's daughter Mira just started kindergarten at Lincoln Elementary.", "queries": ["where does the user's child go to school?", "what grade is Mira in?"]}
+{"id": "f08", "fact": "The user is allergic to peanuts and tree nuts; severity is anaphylactic.", "queries": ["does the user have any food allergies?", "what should I avoid in restaurant recommendations?"]}
+{"id": "f09", "fact": "Authentication is handled via Auth0 with custom universal login pages.", "queries": ["what auth provider does the project use?", "how do users sign in?"]}
+{"id": "f10", "fact": "The user prefers async/await over Promise chains in JavaScript code.", "queries": ["how should I write async JS for the user?", "promise vs async preference"]}
+{"id": "f11", "fact": "The team's standup is daily at 10:30am Pacific on Mondays through Thursdays.", "queries": ["when is the team standup?", "what days does the team meet?"]}
+{"id": "f12", "fact": "The user drives a 2019 Subaru Outback in deep blue.", "queries": ["what car does the user drive?", "user's vehicle"]}
+{"id": "f13", "fact": "The user's preferred IDE is Cursor with the Claude Sonnet model selected.", "queries": ["what editor does the user use?", "which AI model in their IDE?"]}
+{"id": "f14", "fact": "Quarterly OKR planning happens in the second week of every quarter.", "queries": ["when do we plan OKRs?", "OKR cadence"]}
+{"id": "f15", "fact": "The user is a coffee drinker but never adds sugar; oat milk is fine.", "queries": ["how does the user take coffee?", "user's coffee preferences"]}
+{"id": "f16", "fact": "Northwind Robotics' Series B was led by Sequoia in March 2024.", "queries": ["who led the company's Series B?", "Northwind funding history"]}
+{"id": "f17", "fact": "The user runs a half-marathon every spring in Golden Gate Park.", "queries": ["does the user race?", "user's annual running event"]}
+{"id": "f18", "fact": "The team has a strict no-pickle rule for code review: small PRs only.", "queries": ["what's the PR-size policy?", "code review rules"]}
+{"id": "f19", "fact": "Snowflake is the team's data warehouse; dbt handles transformations.", "queries": ["what data warehouse?", "ETL stack"]}
+{"id": "f20", "fact": "The user took a sabbatical in 2022 and lived in Lisbon for six months.", "queries": ["has the user lived abroad?", "tell me about the sabbatical"]}
+{"id": "f21", "fact": "Slack channel for incidents is #ops-firefighting; on-call rotates weekly.", "queries": ["where do we report outages?", "incident channel"]}
+{"id": "f22", "fact": "The user's golden retriever is named Biscuit and is four years old.", "queries": ["does the user have a pet?", "user's dog name"]}
+{"id": "f23", "fact": "Code style follows ruff defaults plus a 100-character line length limit.", "queries": ["what's the linting config?", "line length policy"]}
+{"id": "f24", "fact": "The user negotiated a flat fee of $25k for the Q3 advisory engagement.", "queries": ["what's the Q3 contract value?", "advisory pricing"]}
+{"id": "f25", "fact": "Northwind's flagship product is a warehouse-floor robot named Kestrel-3.", "queries": ["what is Northwind's main product?", "Kestrel robot details"]}

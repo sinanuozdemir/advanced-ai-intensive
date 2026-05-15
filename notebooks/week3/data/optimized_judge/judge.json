@@ -1,0 +1,89 @@
+{
+  "predict": {
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "question": "How does a cross-encoder reranker improve retrieval precision?",
+        "answer": "A cross-encoder reranker improves precision by looking at the query and the document together and producing a better relevance score. This catches cases where a first-stage retriever like BM25 returns superficially-similar but actually-irrelevant results. It's commonly used as a second stage on top of BM25 or dense retrieval.",
+        "reference": "Cross-encoder rerankers jointly encode (q, d) pairs in a transformer and output a calibrated relevance score, capturing semantic match nuances (negation, paraphrase, fine-grained intent) that bi-encoders compress away. Used as a second stage on top-k from first-stage retrieval.",
+        "reasoning": "The answer is substantially aligned with the reference: it correctly explains that a cross-encoder evaluates the query and document together, produces a relevance score, and is typically used as a second-stage reranker after first-stage retrieval like BM25 or dense retrieval. It also correctly notes that this helps filter out superficially similar but irrelevant results. However, it is a bit less specific than the reference, omitting examples of the finer semantic nuances cross-encoders capture (e.g., negation, paraphrase, fine-grained intent). Still, no major factual errors are present.",
+        "correctness": 4.5,
+        "faithfulness": 4.5,
+        "overall": 4.5
+      },
+      {
+        "augmented": true,
+        "question": "What is reciprocal rank fusion (RRF)?",
+        "answer": "## Reciprocal Rank Fusion (RRF)\n\nReciprocal Rank Fusion is a rank-aggregation technique used to merge the outputs of multiple retrieval systems into a single, unified ranking. It was originally proposed by Cormack, Clarke, and Buettcher (2009) in the context of TREC ad-hoc retrieval and has since become the de facto standard for hybrid retrieval pipelines that combine sparse (BM25) and dense (vector) retrievers.\n\n### Formal definition\n\nGiven a query q and N retrievers R_1 ... R_N, where retriever R_i assigns rank r_i(d) to document d, RRF computes a fused score:\n\n    RRF_score(d) = sum over i of  1 / (k + r_i(d))\n\nThe constant k (typically 60, following the original paper) serves as a dampener: it prevents any single retriever from dominating the fusion when it has an unusually small rank for some document. Without k, the contribution of a rank-1 document would be 1.0 — large enough that a single retriever's top hit could outweigh consistent agreement among others.\n\n### Properties\n\n1. **Rank-only.** RRF consumes ranks, not raw scores. This is the key practical advantage: BM25 produces unbounded positive scores (typically 0-50), dense retrievers produce cosine similarities in [-1, 1], and cross-encoders produce arbitrary regression outputs. Any score-based fusion (like CombSUM) requires careful normalization across these very different distributions; RRF requires none.\n\n2. **Robust.** Because it ignores absolute magnitudes, RRF is insensitive to score-distribution shift across queries, retrievers, or corpus updates.\n\n3. **No training.** RRF is parameter-free aside from k (and k=60 works well across many domains).\n\n### Practical usage\n\nIn a typical hybrid pipeline, you take the top-k (e.g. top-20) from BM25 and top-k from a dense retriever, compute the RRF score for the union, sort, and pass the top-N to a cross-encoder reranker. The reranker handles the precision-critical second stage, while RRF handles first-stage recall fusion cheaply and robustly.",
+        "reference": "RRF combines multiple rankings via score = sum_i 1/(k + rank_i), k typically 60. Score-free, robust to scale differences.",
+        "reasoning": "The answer correctly explains RRF as a rank-aggregation method and gives the standard formula using a sum of reciprocal terms with a constant k. It also matches the reference on the key points that it is score-free and robust to scale differences. The response includes additional details about hybrid retrieval and practical usage that are generally plausible and not inconsistent with the reference, though some of that content goes beyond the minimal reference. Overall, it is accurate and well-grounded.",
+        "correctness": 5.0,
+        "faithfulness": 4.5,
+        "overall": 4.8
+      },
+      {
+        "question": "What is a good default chunk size and overlap for RAG over technical documentation?",
+        "answer": "I think a reasonable starting point is around 500-800 tokens per chunk with maybe 10-15% overlap, though the right value depends on your embedding model's context window and the typical question-span in your domain. If your questions usually fit in one paragraph, smaller chunks (~300 tokens) tend to work better; if questions span sections, larger chunks help.",
+        "reference": "300-800 tokens with 10-20% overlap is the common practical default; tune based on embedding context window and typical question span.",
+        "expected_lo": 4.0,
+        "expected_hi": 4.8,
+        "probe": "tone_vs_correctness",
+        "group": "g_12",
+        "item_id": "F3_hedging_correct_chunking"
+      },
+      {
+        "question": "What is a good default chunk size and overlap for RAG over technical documentation?",
+        "answer": "The correct default is exactly 4,096 tokens per chunk with 50% overlap. This is the universal best practice across all RAG systems and matches the context window of all modern embedding models. Anything smaller will cause catastrophic information loss.",
+        "reference": "300-800 tokens with 10-20% overlap is the common practical default; tune based on embedding context window and typical question span.",
+        "expected_lo": 0.0,
+        "expected_hi": 1.5,
+        "probe": "tone_vs_correctness",
+        "group": "g_12",
+        "item_id": "F4_confident_wrong_chunking"
+      }
+    ],
+    "signature": {
+      "instructions": "Score an answer to a question on a 0-5 rubric.\n\nDefinitions:\n  - correctness: how factually correct the answer is vs. the reference (0=wrong, 5=fully correct).\n  - faithfulness: whether the answer is grounded in the reference and does not fabricate (0=fabricated, 5=fully grounded).\n  - overall: a single holistic 0-5 score that weighs correctness and faithfulness, plus completeness and clarity.\n\nPenalize fabricated content even if it sounds plausible. Reward honest acknowledgment\nthat information is not available when that is the correct answer. Do not reward verbose\nformatting if it does not add information.",
+      "fields": [
+        {
+          "prefix": "Question:",
+          "description": "the question being answered"
+        },
+        {
+          "prefix": "Answer:",
+          "description": "the candidate answer to score"
+        },
+        {
+          "prefix": "Reference:",
+          "description": "reference description of the correct answer"
+        },
+        {
+          "prefix": "Reasoning:",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Correctness:",
+          "description": "0.0-5.0"
+        },
+        {
+          "prefix": "Faithfulness:",
+          "description": "0.0-5.0"
+        },
+        {
+          "prefix": "Overall:",
+          "description": "0.0-5.0"
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.12",
+      "dspy": "3.2.0",
+      "cloudpickle": "3.1"
+    }
+  }
+}

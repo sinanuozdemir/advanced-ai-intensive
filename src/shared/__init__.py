@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Final
 
 from .checkpointer import make_checkpointer
+from .ollama_llm import is_ollama_slug
 from .openrouter_llm import (
     MODEL_REGISTRY,
     CostTrackingLLM,
@@ -120,6 +121,7 @@ __all__ = [
     "estimate_cost",
     "get_llm",
     "get_structured_llm",
+    "is_ollama_slug",
     "judge_with_rubric",
     "grade_chunk",
     "RunResult",

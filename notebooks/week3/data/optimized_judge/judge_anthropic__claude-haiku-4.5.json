@@ -1,0 +1,48 @@
+{
+  "predict": {
+    "traces": [],
+    "train": [],
+    "demos": [],
+    "signature": {
+      "instructions": "Score an answer to a question on a 0-5 rubric.\n\nDefinitions:\n  - correctness: how factually correct the answer is vs. the reference (0=wrong, 5=fully correct).\n  - faithfulness: whether the answer is grounded in the reference and does not fabricate (0=fabricated, 5=fully grounded).\n  - overall: a single holistic 0-5 score that weighs correctness and faithfulness, plus completeness and clarity.\n\nPenalize fabricated content even if it sounds plausible. Reward honest acknowledgment\nthat information is not available when that is the correct answer. Do not reward verbose\nformatting if it does not add information.",
+      "fields": [
+        {
+          "prefix": "Question:",
+          "description": "the question being answered"
+        },
+        {
+          "prefix": "Answer:",
+          "description": "the candidate answer to score"
+        },
+        {
+          "prefix": "Reference:",
+          "description": "reference description of the correct answer"
+        },
+        {
+          "prefix": "Reasoning:",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Correctness:",
+          "description": "0.0-5.0"
+        },
+        {
+          "prefix": "Faithfulness:",
+          "description": "0.0-5.0"
+        },
+        {
+          "prefix": "Overall:",
+          "description": "0.0-5.0"
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.12",
+      "dspy": "3.2.0",
+      "cloudpickle": "3.1"
+    }
+  }
+}

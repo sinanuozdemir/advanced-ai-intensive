@@ -1,9 +1,13 @@
-"""OpenRouter-backed LLM factory (canonical copy under ``src/shared``).
+"""OpenRouter- and Ollama-backed LLM factory (canonical copy under ``src/shared``).
 
 Used by course notebooks (via ``notebooks/week1/llm.py`` shim), Week 2
-libraries, and apps. One key (`OPENROUTER_API_KEY`), one client pattern
-(`ChatOpenAI` at the OpenRouter base URL). Resolve models by registry *role*
-(e.g. ``get_llm("cheap_workhorse")``) or raw OpenRouter slug.
+libraries, and apps. Two routes, one entry point:
+
+* Slugs starting with ``ollama/`` are dispatched to ``shared.ollama_llm``
+  (talks to a local Ollama server, cost = $0, no API key required).
+* Everything else routes through OpenRouter at ``OPENROUTER_BASE_URL`` using
+  ``OPENROUTER_API_KEY`` and a ``ChatOpenAI`` client. ``MODEL_REGISTRY`` maps
+  named *roles* (``"cheap_workhorse"`` etc.) to raw OpenRouter slugs.
 
 If a slug is unavailable on OpenRouter at runtime, edit `MODEL_REGISTRY`.
 """
@@ -16,6 +20,8 @@ from typing import Any
 
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, ValidationError
+
+from .ollama_llm import get_ollama_llm, is_ollama_slug
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
@@ -96,14 +102,18 @@ def list_models() -> dict[str, str]:
 
 def resolve_slug(name: str) -> str:
     """Return the OpenRouter slug for a role name, or pass `name` through if it
-    looks like a raw slug (contains a '/')."""
+    looks like a raw slug (contains a '/').
+
+    ``ollama/<model>`` slugs are returned unchanged and later dispatched to
+    the Ollama factory by :func:`get_llm`.
+    """
     if "/" in name:
         return name
     if name in MODEL_REGISTRY:
         return MODEL_REGISTRY[name]
     raise KeyError(
         f"Unknown model role {name!r}. "
-        f"Available roles: {sorted(MODEL_REGISTRY)} or pass a raw slug like 'openai/gpt-4o-mini'."
+        f"Available roles: {sorted(MODEL_REGISTRY)} or pass a raw slug like 'openai/gpt-4o-mini' or 'ollama/llama3.2'."
     )
 
 
@@ -115,25 +125,40 @@ def get_llm(
     track_cost: bool = False,
     **kwargs: Any,
 ) -> ChatOpenAI:
-    """Return a `ChatOpenAI` configured for OpenRouter.
+    """Return an LLM client. OpenRouter by default, Ollama for ``ollama/*`` slugs.
 
     Args:
-        name: A role (e.g. "cheap_workhorse") or a raw OpenRouter slug
-            (e.g. "openai/gpt-4o-mini").
+        name: A role (e.g. "cheap_workhorse"), a raw OpenRouter slug
+            (e.g. "openai/gpt-4o-mini"), or an Ollama slug
+            (e.g. "ollama/llama3.2"). Ollama slugs are dispatched to a local
+            Ollama server (``OLLAMA_HOST``, default ``http://localhost:11434``).
         temperature: Sampling temperature.
         max_tokens: Optional max output tokens.
         track_cost: If True, wraps the LLM in `CostTrackingLLM`. The wrapper
             captures token usage and an estimated $ cost on every call;
-            access via `llm.last_usage`.
-        **kwargs: Forwarded to `ChatOpenAI`.
+            access via `llm.last_usage`. For ``ollama/*`` slugs cost is always
+            $0.00 (local inference).
+        **kwargs: Forwarded to the underlying client.
     """
+    slug = resolve_slug(name)
+
+    if is_ollama_slug(slug):
+        llm = get_ollama_llm(
+            slug,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            **kwargs,
+        )
+        if track_cost:
+            return CostTrackingLLM(llm, slug)  # type: ignore[return-value]
+        return llm
+
     api_key = os.environ.get("OPENROUTER_API_KEY")
     if not api_key:
         raise RuntimeError(
-            "OPENROUTER_API_KEY is not set. Copy .env.example to .env and add your key."
+            "OPENROUTER_API_KEY is not set. Copy .env.example to .env and add your key. "
+            "(Or use an 'ollama/<model>' slug to run locally without a key.)"
         )
-
-    slug = resolve_slug(name)
 
     # Reasoning models often reject `temperature` — only set it if it makes sense.
     extra: dict[str, Any] = {}
@@ -385,7 +410,10 @@ def _extract_usage(result: Any, slug: str, elapsed_s: float) -> Usage:
 
 def estimate_cost(slug: str, in_tokens: int, out_tokens: int) -> float:
     """Estimate per-call USD cost from token counts and the model's
-    `_PRICE_PER_M_TOKENS` entry. Returns 0.0 for unknown slugs."""
+    `_PRICE_PER_M_TOKENS` entry. Returns 0.0 for unknown slugs and for any
+    ``ollama/*`` slug (local inference)."""
+    if is_ollama_slug(slug):
+        return 0.0
     in_price, out_price = _PRICE_PER_M_TOKENS.get(slug, (0.0, 0.0))
     return (in_tokens / 1_000_000) * in_price + (out_tokens / 1_000_000) * out_price
 

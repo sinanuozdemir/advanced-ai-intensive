@@ -1,0 +1,10 @@
+{
+  "command": "python3",
+  "args": [
+    "/Users/sinanozdemir/Teaching/Pearson/advanced-agentic-ai-in-three-weeks/apps/agent_api/mcp_server/research_workflow_server.py"
+  ],
+  "env": {
+    "AGENT_API_BASE_URL": "http://localhost:8090",
+    "AGENT_API_TIMEOUT_S": "600"
+  }
+}

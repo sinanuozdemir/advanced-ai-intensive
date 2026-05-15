@@ -1,0 +1,89 @@
+{
+  "predict": {
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "question": "Does the corpus contain information about GraphRAG?",
+        "answer": "I was unable to load the corpus indexes in this environment, so I could not perform a search. I cannot tell you whether GraphRAG is in the corpus, and I will not fabricate an answer.",
+        "reference": "GraphRAG is not in the corpus. The correct answer is to say so based on a search.",
+        "reasoning": "The answer correctly states that it cannot determine if GraphRAG is in the corpus due to an inability to load indexes, and it explicitly refuses to fabricate an answer. This aligns with the reference which states GraphRAG is not in the corpus and that the correct answer is to say so based on a search. While the answer doesn't directly state \"GraphRAG is not in the corpus,\" its explanation for not being able to search and its refusal to fabricate is a good response given its stated limitations. The faithfulness is high because it doesn't invent information. The correctness is high because it accurately reflects its inability to answer and avoids providing incorrect information.",
+        "correctness": 4.0,
+        "faithfulness": 5.0,
+        "overall": 4.5
+      },
+      {
+        "augmented": true,
+        "question": "What is reciprocal rank fusion (RRF)?",
+        "answer": "## Reciprocal Rank Fusion (RRF)\n\nReciprocal Rank Fusion is a rank-aggregation technique used to merge the outputs of multiple retrieval systems into a single, unified ranking. It was originally proposed by Cormack, Clarke, and Buettcher (2009) in the context of TREC ad-hoc retrieval and has since become the de facto standard for hybrid retrieval pipelines that combine sparse (BM25) and dense (vector) retrievers.\n\n### Formal definition\n\nGiven a query q and N retrievers R_1 ... R_N, where retriever R_i assigns rank r_i(d) to document d, RRF computes a fused score:\n\n    RRF_score(d) = sum over i of  1 / (k + r_i(d))\n\nThe constant k (typically 60, following the original paper) serves as a dampener: it prevents any single retriever from dominating the fusion when it has an unusually small rank for some document. Without k, the contribution of a rank-1 document would be 1.0 — large enough that a single retriever's top hit could outweigh consistent agreement among others.\n\n### Properties\n\n1. **Rank-only.** RRF consumes ranks, not raw scores. This is the key practical advantage: BM25 produces unbounded positive scores (typically 0-50), dense retrievers produce cosine similarities in [-1, 1], and cross-encoders produce arbitrary regression outputs. Any score-based fusion (like CombSUM) requires careful normalization across these very different distributions; RRF requires none.\n\n2. **Robust.** Because it ignores absolute magnitudes, RRF is insensitive to score-distribution shift across queries, retrievers, or corpus updates.\n\n3. **No training.** RRF is parameter-free aside from k (and k=60 works well across many domains).\n\n### Practical usage\n\nIn a typical hybrid pipeline, you take the top-k (e.g. top-20) from BM25 and top-k from a dense retriever, compute the RRF score for the union, sort, and pass the top-N to a cross-encoder reranker. The reranker handles the precision-critical second stage, while RRF handles first-stage recall fusion cheaply and robustly.",
+        "reference": "RRF combines multiple rankings via score = sum_i 1/(k + rank_i), k typically 60. Score-free, robust to scale differences.",
+        "reasoning": "The answer provides a comprehensive explanation of Reciprocal Rank Fusion (RRF), including its definition, formal formula, properties, and practical usage. It accurately states that RRF is a rank-aggregation technique, uses the formula `sum over i of 1 / (k + r_i(d))`, and mentions the typical value of k as 60. It also correctly highlights its rank-only nature, robustness, and lack of training as key properties. The practical usage section further elaborates on its application in hybrid retrieval pipelines.\n\nThe reference is a very concise summary of RRF, stating its core formula and key properties. The answer fully covers all points mentioned in the reference and expands upon them with detailed explanations and additional relevant information.\n\n- **Correctness**: The answer is factually correct and aligns perfectly with the reference, while also providing much more detail.\n- **Faithfulness**: All information presented in the answer is grounded in the reference and common knowledge about RRF. There is no fabrication.\n- **Overall**: The answer is excellent. It is highly correct, faithful, complete, and well-structured. It provides a clear and thorough explanation of RRF.",
+        "correctness": 5.0,
+        "faithfulness": 5.0,
+        "overall": 5.0
+      },
+      {
+        "augmented": true,
+        "question": "What is reciprocal rank fusion (RRF)?",
+        "answer": "Reciprocal Rank Fusion (RRF) is a method for combining the rankings produced by multiple retrieval systems into a single ranking. For each candidate document, RRF computes a score equal to the sum of 1/(k + rank_i) across all retrievers, where rank_i is the document's rank in retriever i and k is a small constant (typically 60). The constant k dampens the influence of top-ranked documents and prevents any single retriever from dominating the fusion. Because RRF only consumes ranks (not raw scores), it is robust to scale and distribution differences between retrievers — a BM25 score of 12.4 and a cosine similarity of 0.83 are not directly comparable, but their ranks always are.",
+        "reference": "RRF combines multiple rankings via score = sum_i 1/(k + rank_i), k typically 60. Score-free, robust to scale differences.",
+        "reasoning": "The answer accurately defines RRF, provides the correct formula, explains the role of 'k', and highlights its robustness to scale and distribution differences, all of which are present in the reference or are logical extensions of the reference's core points. The reference is a very concise summary, and the answer expands on it correctly.",
+        "correctness": 5.0,
+        "faithfulness": 5.0,
+        "overall": 5.0
+      },
+      {
+        "augmented": true,
+        "question": "What does NDCG measure in retrieval evaluation?",
+        "answer": "NDCG (Normalized Document Count Gradient) measures the average number of relevant documents per query divided by total documents in the corpus. It ranges from 0 to 1, where 1 means every document in the corpus is relevant. It is primarily used for evaluating recall rather than ranking quality.",
+        "reference": "NDCG (Normalized Discounted Cumulative Gain) measures ranking quality by accumulating graded relevance with a logarithmic position discount, normalized by the ideal ranking. Used to evaluate ranking, not corpus-wide recall.",
+        "reasoning": "The answer incorrectly defines NDCG as \"Normalized Document Count Gradient\" instead of \"Normalized Discounted Cumulative Gain\". It also misrepresents what NDCG measures, stating it measures \"the average number of relevant documents per query divided by total documents in the corpus\" and is used for \"evaluating recall rather than ranking quality.\" The reference clearly states NDCG measures \"ranking quality by accumulating graded relevance with a logarithmic position discount, normalized by the ideal ranking\" and is \"Used to evaluate ranking, not corpus-wide recall.\" The answer's description of the range and meaning of 1 is also incorrect in the context of NDCG.",
+        "correctness": 0.0,
+        "faithfulness": 0.0,
+        "overall": 0.0
+      }
+    ],
+    "signature": {
+      "instructions": "Score an answer to a question on a 0-5 rubric.\n\nDefinitions:\n  - correctness: how factually correct the answer is vs. the reference (0=wrong, 5=fully correct).\n  - faithfulness: whether the answer is grounded in the reference and does not fabricate (0=fabricated, 5=fully grounded).\n  - overall: a single holistic 0-5 score that weighs correctness and faithfulness, plus completeness and clarity.\n\nPenalize fabricated content even if it sounds plausible. Reward honest acknowledgment\nthat information is not available when that is the correct answer. Do not reward verbose\nformatting if it does not add information.",
+      "fields": [
+        {
+          "prefix": "Question:",
+          "description": "the question being answered"
+        },
+        {
+          "prefix": "Answer:",
+          "description": "the candidate answer to score"
+        },
+        {
+          "prefix": "Reference:",
+          "description": "reference description of the correct answer"
+        },
+        {
+          "prefix": "Reasoning:",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Correctness:",
+          "description": "0.0-5.0"
+        },
+        {
+          "prefix": "Faithfulness:",
+          "description": "0.0-5.0"
+        },
+        {
+          "prefix": "Overall:",
+          "description": "0.0-5.0"
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.12",
+      "dspy": "3.2.0",
+      "cloudpickle": "3.1"
+    }
+  }
+}

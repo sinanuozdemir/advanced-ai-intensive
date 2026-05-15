@@ -1,0 +1,89 @@
+{
+  "predict": {
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "question": "What is reciprocal rank fusion (RRF)?",
+        "answer": "RRF combines rankings from multiple retrievers by scoring each document as the sum of 1/(k+rank_i) across systems, with k typically 60. It uses ranks (not raw scores), so it's robust to scale differences between retrievers.",
+        "reference": "RRF combines multiple rankings via score = sum_i 1/(k + rank_i), k typically 60. Score-free, robust to scale differences.",
+        "reasoning": "The answer accurately describes RRF: combining rankings from multiple retrievers using the formula sum of 1/(k+rank_i), with k=60, and notes it uses ranks rather than raw scores making it robust to scale differences. This matches the reference perfectly. The answer is concise, correct, and fully grounded in the reference.",
+        "correctness": 5.0,
+        "faithfulness": 5.0,
+        "overall": 5.0
+      },
+      {
+        "augmented": true,
+        "question": "How does a cross-encoder reranker improve retrieval precision?",
+        "answer": "A cross-encoder reranker takes (query, document) as a single concatenated input to a transformer and outputs one relevance score per pair, in contrast to a bi-encoder which embeds query and document separately and scores by cosine similarity. The joint encoding lets the transformer attend across query and document tokens together, so it captures interactions a bi-encoder cannot represent: negation ('papers that do NOT use BM25'), paraphrase alignment ('how' vs 'in what way'), and fine-grained intent (the difference between a paper *citing* a method and a paper *proposing* it). The cost is that scores can't be precomputed, which is why cross-encoders are used as a second stage on the top 20-100 candidates from a cheaper first-stage retriever.",
+        "reference": "Cross-encoder rerankers jointly encode (q, d) pairs in a transformer and output a calibrated relevance score, capturing semantic match nuances (negation, paraphrase, fine-grained intent) that bi-encoders compress away. Used as a second stage on top-k from first-stage retrieval.",
+        "reasoning": "The answer is highly accurate and well-aligned with the reference. It correctly explains that cross-encoders jointly encode (query, document) pairs, output a relevance score, capture semantic nuances like negation, paraphrase, and fine-grained intent that bi-encoders miss, and are used as a second stage on top candidates from a first-stage retriever. The answer adds useful concrete examples (e.g., specific examples of negation, paraphrase, and intent distinctions) and explains why cross-encoders can't precompute scores, which is grounded and accurate. There's no fabrication - all content is consistent with the reference and standard knowledge about cross-encoders. The answer is clear, complete, and well-structured.",
+        "correctness": 5.0,
+        "faithfulness": 5.0,
+        "overall": 5.0
+      },
+      {
+        "question": "What are common chunking strategies for RAG?",
+        "answer": "Common strategies include fixed-size chunking (split every N tokens with overlap), recursive character splitting (split on paragraph, then sentence, then word boundaries), semantic chunking (split where embedding similarity drops), and structure-aware chunking (split on Markdown headers, function boundaries, etc.). Most production systems use recursive splitting with 200-1000 token chunks and 10-20% overlap as a starting baseline.",
+        "reference": "Common chunking strategies: fixed-size with overlap, recursive character (paragraph/sentence/word), semantic (embedding-based), and structure-aware (header/code-block). Typical defaults: 200-1000 tokens, 10-20% overlap.",
+        "expected_lo": 4.3,
+        "expected_hi": 5.0,
+        "probe": "ground_truth_sanity",
+        "group": "g_07",
+        "item_id": "A5_correct_chunking"
+      },
+      {
+        "question": "What is reciprocal rank fusion (RRF)?",
+        "answer": "## Reciprocal Rank Fusion (RRF)\n\nReciprocal Rank Fusion is a rank-aggregation technique used to merge the outputs of multiple retrieval systems into a single, unified ranking. It was originally proposed by Cormack, Clarke, and Buettcher (2009) in the context of TREC ad-hoc retrieval and has since become the de facto standard for hybrid retrieval pipelines that combine sparse (BM25) and dense (vector) retrievers.\n\n### Formal definition\n\nGiven a query q and N retrievers R_1 ... R_N, where retriever R_i assigns rank r_i(d) to document d, RRF computes a fused score:\n\n    RRF_score(d) = sum over i of  1 / (k + r_i(d))\n\nThe constant k (typically 60, following the original paper) serves as a dampener: it prevents any single retriever from dominating the fusion when it has an unusually small rank for some document. Without k, the contribution of a rank-1 document would be 1.0 — large enough that a single retriever's top hit could outweigh consistent agreement among others.\n\n### Properties\n\n1. **Rank-only.** RRF consumes ranks, not raw scores. This is the key practical advantage: BM25 produces unbounded positive scores (typically 0-50), dense retrievers produce cosine similarities in [-1, 1], and cross-encoders produce arbitrary regression outputs. Any score-based fusion (like CombSUM) requires careful normalization across these very different distributions; RRF requires none.\n\n2. **Robust.** Because it ignores absolute magnitudes, RRF is insensitive to score-distribution shift across queries, retrievers, or corpus updates.\n\n3. **No training.** RRF is parameter-free aside from k (and k=60 works well across many domains).\n\n### Practical usage\n\nIn a typical hybrid pipeline, you take the top-k (e.g. top-20) from BM25 and top-k from a dense retriever, compute the RRF score for the union, sort, and pass the top-N to a cross-encoder reranker. The reranker handles the precision-critical second stage, while RRF handles first-stage recall fusion cheaply and robustly.",
+        "reference": "RRF combines multiple rankings via score = sum_i 1/(k + rank_i), k typically 60. Score-free, robust to scale differences.",
+        "expected_lo": 4.3,
+        "expected_hi": 5.0,
+        "probe": "length_bias",
+        "group": "g_13",
+        "item_id": "L3_long_correct"
+      }
+    ],
+    "signature": {
+      "instructions": "Score an answer to a question on a 0-5 rubric.\n\nDefinitions:\n  - correctness: how factually correct the answer is vs. the reference (0=wrong, 5=fully correct).\n  - faithfulness: whether the answer is grounded in the reference and does not fabricate (0=fabricated, 5=fully grounded).\n  - overall: a single holistic 0-5 score that weighs correctness and faithfulness, plus completeness and clarity.\n\nPenalize fabricated content even if it sounds plausible. Reward honest acknowledgment\nthat information is not available when that is the correct answer. Do not reward verbose\nformatting if it does not add information.",
+      "fields": [
+        {
+          "prefix": "Question:",
+          "description": "the question being answered"
+        },
+        {
+          "prefix": "Answer:",
+          "description": "the candidate answer to score"
+        },
+        {
+          "prefix": "Reference:",
+          "description": "reference description of the correct answer"
+        },
+        {
+          "prefix": "Reasoning:",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Correctness:",
+          "description": "0.0-5.0"
+        },
+        {
+          "prefix": "Faithfulness:",
+          "description": "0.0-5.0"
+        },
+        {
+          "prefix": "Overall:",
+          "description": "0.0-5.0"
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.12",
+      "dspy": "3.2.0",
+      "cloudpickle": "3.1"
+    }
+  }
+}

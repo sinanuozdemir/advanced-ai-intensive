@@ -1,0 +1,29 @@
+services:
+  agent_api:
+    build:
+      context: .
+    container_name: agent_api
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ARTIFACTS_DB_PATH=/app/runtime/artifacts.db
+      - LOG_FILE_PATH=/app/runtime/agent_api.log
+    volumes:
+      # Mount the shared course modules read-only so the workflow can keep using
+      # `from shared import get_llm` without re-packaging the repo into the image.
+      - ../../src:/app/src:ro
+      # Writable runtime: SQLite artifact store + structured log file.
+      - ./runtime:/app/runtime
+    healthcheck:
+      # Production deployments gate traffic on /readyz, not /healthz. The
+      # liveness probe just checks the process is up; readiness also verifies
+      # the DB is writable and the LLM key resolves a model.
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8090/readyz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s

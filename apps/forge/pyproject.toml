@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "forge"
+version = "0.0.1"
+description = "Forge — a coding-agent TUI built backwards from an eval harness."
+requires-python = ">=3.11"
+dependencies = [
+    # All the heavy deps already live at the repo root requirements.txt.
+    # Forge depends on the same env. This pyproject only declares the few
+    # extra packages Forge specifically needs on top of that.
+    "textual>=0.85.0",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.32.0",
+    "websockets>=13.0",
+    "tomli-w>=1.0.0",
+    "tomli>=2.0.1;python_version<'3.11'",
+    "croniter>=2.0",
+]
+
+[project.scripts]
+forge = "forge.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["forge*"]
+exclude = ["mcp_servers*", "electron*"]

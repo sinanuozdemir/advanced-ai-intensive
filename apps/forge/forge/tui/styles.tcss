@@ -1,0 +1,48 @@
+/* Forge slim TUI styles. Dark theme. Chat + input + 1-line status strip. */
+
+Screen {
+    layout: vertical;
+    background: $surface;
+    color: $text;
+}
+
+#chat-log {
+    height: 1fr;
+    border: solid $primary;
+    padding: 0 1;
+}
+
+Input {
+    dock: bottom;
+    border: tall $primary;
+}
+
+#status-strip {
+    dock: bottom;
+    height: 1;
+    padding: 0 1;
+    background: $boost;
+    color: $text-muted;
+}
+
+RichLog {
+    background: $surface;
+    color: $text;
+}
+
+PlanApproveScreen, ToolGateScreen {
+    align: center middle;
+}
+
+PlanApproveScreen Vertical, ToolGateScreen Vertical {
+    width: 90;
+    height: 30;
+    border: thick $warning;
+    background: $boost;
+    padding: 1 2;
+}
+
+PlanApproveScreen Horizontal, ToolGateScreen Horizontal {
+    height: 3;
+    align: center middle;
+}
