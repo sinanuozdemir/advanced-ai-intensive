@@ -2,9 +2,9 @@
 
 # Advanced Agentic Systems Intensive
 
-This repository contains code for my O'Reilly live course: [Advanced Agentic Systems Intensive](https://learning.oreilly.com/live-events/advanced-agentic-systems-intensive/0642572350505/).
+This repository contains code for the O'Reilly live courses: [Advanced Agentic Systems Intensive](https://learning.oreilly.com/live-events/advanced-agentic-systems-intensive/0642572350505/) & [AI Engineering Intensive](https://www.oreilly.com/live-events/ai-engineering-intensive/0642572375317/0642572375300/).
 
-This three-week intensive goes beyond introductory RAG and agents to build advanced workflows and retrieval systems with multi-hop reasoning, query planning, agentic RAG, MCP, multi-agent orchestration, long-term memory, agent harnesses, and production-grade evaluation. Through live coding and case studies from production systems, you will learn the architectural patterns, evaluation frameworks, and deployment strategies that separate demos from reliable, shippable AI systems.
+These three-week intensives go beyond introductory RAG and agents to build advanced AI workflows, models, and retrieval systems with multi-hop reasoning, query planning. We cover agentic RAG, MCP, multi-agent orchestration, long-term memory, agent harnesses, post-training, and production-grade evaluation. Through live coding and case studies from production systems, you will learn the architectural patterns, evaluation frameworks, and deployment strategies that separate demos from reliable, shippable AI systems.
 
 The repo contains live-coded notebooks, shared utilities, and a heterogeneous benchmark used throughout the cohort.
 
@@ -39,7 +39,7 @@ python3 -m jupyter notebook
 
 ## Notebooks
 
-### Week 1 — Advanced Workflows, RAG, and Context
+### Week 1 for both — Advanced Workflows, RAG, and Context
 
 | #   | Notebook                                                                                              | Course segment |
 |-----|-------------------------------------------------------------------------------------------------------|----------------|
