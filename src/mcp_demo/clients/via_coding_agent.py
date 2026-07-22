@@ -74,7 +74,7 @@ def _safe_path(scratch: Path, p: str) -> Path:
     """Resolve `p` against scratch, refusing escapes outside scratch.
 
     Compares the *joined-but-not-resolved* path against scratch so that
-    symlinks placed inside scratch (e.g. `notebooks/week1/data` -> repo
+    symlinks placed inside scratch (e.g. `notebooks/data` -> repo
     data dir) traverse normally; absolute paths and `..` escapes still
     fail because the joined path lands outside scratch.
     """
@@ -92,20 +92,20 @@ def _safe_path(scratch: Path, p: str) -> Path:
 
 def run(question: str, model_slug: str = "openai/gpt-5.4-nano") -> ClientResult:
     scratch = Path(tempfile.mkdtemp(prefix="coding_agent_"))
-    # Make repo-relative paths in SKILL.md (e.g. `notebooks/week1/data/...`)
+    # Make repo-relative paths in SKILL.md (e.g. `notebooks/data/...`)
     # resolve from inside scratch by symlinking the data tree. Imports of
     # `corpus` / `retrievers` work via PYTHONPATH below; only filesystem
     # reads need this.
-    (scratch / "notebooks" / "week1").mkdir(parents=True, exist_ok=True)
-    (scratch / "notebooks" / "week1" / "data").symlink_to(
-        _REPO_ROOT / "notebooks" / "week1" / "data"
+    (scratch / "notebooks").mkdir(parents=True, exist_ok=True)
+    (scratch / "notebooks" / "data").symlink_to(
+        _REPO_ROOT / "notebooks" / "data"
     )
     shell_calls = {"n": 0}
     env = os.environ.copy()
     src_dir = str(_REPO_ROOT / "src")
-    week1_dir = str(_REPO_ROOT / "notebooks" / "week1")
+    notebooks_dir = str(_REPO_ROOT / "notebooks")
     existing = env.get("PYTHONPATH", "")
-    env["PYTHONPATH"] = ":".join([p for p in [src_dir, week1_dir, existing] if p])
+    env["PYTHONPATH"] = ":".join([p for p in [src_dir, notebooks_dir, existing] if p])
 
     @tool
     def write_file(path: str, content: str) -> str:
@@ -140,7 +140,7 @@ def run(question: str, model_slug: str = "openai/gpt-5.4-nano") -> ClientResult:
 
         Returns combined stdout+stderr (truncated to 4000 chars).
         60-second timeout. PYTHONPATH includes the repo's src/ and
-        notebooks/week1/ so imports of `corpus`, `retrievers`, etc.
+        notebooks/ so imports of `corpus`, `retrievers`, etc.
         resolve.
         """
         if shell_calls["n"] >= MAX_SHELL_CALLS:

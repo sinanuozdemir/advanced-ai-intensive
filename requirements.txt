@@ -36,7 +36,7 @@ flask>=3.0.0
 celery>=5.4.0
 redis>=5.0.0
 
-# Week 3: DSPy judge optimization (notebooks/week3/2_dspy_judge_optimization.ipynb)
+# Week 3: DSPy judge optimization (notebooks/dspy_judge_optimization.ipynb)
 dspy-ai>=2.5.0
 # optuna>=4.0.0  # not yet used
 

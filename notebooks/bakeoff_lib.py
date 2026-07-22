@@ -16,7 +16,7 @@ What lives here:
 - :func:`run_task_on_fixture`   — execute one (task, policy) trial end-to-end
 
 The five policies live in ``plan_act_alts.py``. Scoring goes through
-``notebooks/week1/judges.py:judge_with_rubric`` directly.
+``notebooks/judges.py:judge_with_rubric`` directly.
 """
 from __future__ import annotations
 
@@ -36,11 +36,11 @@ from multi_agent.topologies import build_solo, build_supervisor
 from multi_agent.workers import WorkerSpec
 from shared import get_llm
 
-# Week 1's rubric judge. We use it directly — no Forge wrapper.
+# Course rubric judge (notebooks/judges.py).
 import sys
-_W1 = Path(__file__).resolve().parents[1] / "week1"
-if str(_W1) not in sys.path:
-    sys.path.insert(0, str(_W1))
+_NOTEBOOKS = Path(__file__).resolve().parent
+if str(_NOTEBOOKS) not in sys.path:
+    sys.path.insert(0, str(_NOTEBOOKS))
 from judges import judge_with_rubric  # noqa: E402
 
 

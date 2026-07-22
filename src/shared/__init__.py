@@ -1,8 +1,8 @@
-"""Stable imports for Week 2 code and notebooks.
+"""Stable imports for course code and notebooks.
 
 - **OpenRouter LLM helpers** live in `shared.openrouter_llm` (this package) so
-  apps and libraries never depend on `notebooks/week1/` at import time.
-- **Eval, judging, retrieval** helpers still live under `notebooks/week1/` for
+  apps and libraries never depend on `notebooks/` at import time.
+- **Eval, judging, retrieval** helpers still live under `notebooks/` for
   course notebooks; they are loaded lazily on first use so optional deps
   (e.g. pandas) are not required to import `shared.make_checkpointer` or
   `shared.get_llm`.
@@ -24,8 +24,8 @@ from .openrouter_llm import (
     get_structured_llm,
 )
 
-# Names delegated to `notebooks/week1/` (judges, eval_harness, corpus, retrievers).
-_WEEK1_LAZY: Final[frozenset[str]] = frozenset(
+# Names delegated to `notebooks/` (judges, eval_harness, corpus, retrievers).
+_NOTEBOOK_LAZY: Final[frozenset[str]] = frozenset(
     {
         "judge_with_rubric",
         "grade_chunk",
@@ -45,30 +45,30 @@ _WEEK1_LAZY: Final[frozenset[str]] = frozenset(
     }
 )
 
-_week1_exports: dict[str, Any] | None = None
+_notebook_exports: dict[str, Any] | None = None
 
 
-def _ensure_week1_on_path() -> None:
-    """Prepend ``…/notebooks/week1`` to ``sys.path`` if that tree exists."""
-    if getattr(_ensure_week1_on_path, "_done", False):  # type: ignore[misc]
+def _ensure_notebooks_on_path() -> None:
+    """Prepend ``…/notebooks`` to ``sys.path`` if that tree exists."""
+    if getattr(_ensure_notebooks_on_path, "_done", False):  # type: ignore[misc]
         return
     here = Path(__file__).resolve().parent
     for base in here.parents:
-        cand = base / "notebooks" / "week1"
+        cand = base / "notebooks"
         if (cand / "judges.py").is_file():
             s = str(cand)
             if s not in sys.path:
                 sys.path.insert(0, s)
-            setattr(_ensure_week1_on_path, "_done", True)
+            setattr(_ensure_notebooks_on_path, "_done", True)
             return
-    setattr(_ensure_week1_on_path, "_done", True)
+    setattr(_ensure_notebooks_on_path, "_done", True)
 
 
-def _load_week1_exports() -> dict[str, Any]:
-    global _week1_exports
-    if _week1_exports is not None:
-        return _week1_exports
-    _ensure_week1_on_path()
+def _load_notebook_exports() -> dict[str, Any]:
+    global _notebook_exports
+    if _notebook_exports is not None:
+        return _notebook_exports
+    _ensure_notebooks_on_path()
     from judges import judge_with_rubric, grade_chunk  # noqa: PLC0415
     from corpus import load_bm25, load_chroma, load_gold_set  # noqa: PLC0415
     from eval_harness import (  # noqa: PLC0415
@@ -83,7 +83,7 @@ def _load_week1_exports() -> dict[str, Any]:
     )
     from retrievers import CrossEncoderReranker, HybridRetriever  # noqa: PLC0415
 
-    _week1_exports = {
+    _notebook_exports = {
         "judge_with_rubric": judge_with_rubric,
         "grade_chunk": grade_chunk,
         "RunResult": RunResult,
@@ -100,16 +100,16 @@ def _load_week1_exports() -> dict[str, Any]:
         "HybridRetriever": HybridRetriever,
         "CrossEncoderReranker": CrossEncoderReranker,
     }
-    return _week1_exports
+    return _notebook_exports
 
 
 def __getattr__(name: str) -> Any:
-    if name in _WEEK1_LAZY:
+    if name in _NOTEBOOK_LAZY:
         try:
-            return _load_week1_exports()[name]
+            return _load_notebook_exports()[name]
         except ModuleNotFoundError as exc:
             raise ImportError(
-                f"shared.{name} requires the course tree at notebooks/week1 "
+                f"shared.{name} requires the course tree at notebooks/ "
                 f"(and its dependencies, e.g. pandas). Original error: {exc}"
             ) from exc
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

@@ -6,8 +6,8 @@ answer the user's question by searching a pre-built corpus.
 ## What's on disk
 
 A heterogeneous text corpus has been chunked and indexed two ways. Both
-indexes were built by `notebooks/week1/0_build_corpus.ipynb` and live
-under `notebooks/week1/data/`.
+indexes were built by `notebooks/build_corpus.ipynb` and live
+under `notebooks/data/`.
 
 The corpus pulls from three sources, tagged in each chunk's metadata
 under the key `source`:
@@ -18,7 +18,7 @@ under the key `source`:
 
 ### 1. Dense index — Chroma
 
-- Persist directory: `notebooks/week1/data/chroma_db/`
+- Persist directory: `notebooks/data/chroma_db/`
 - Collection name: `advanced_agentic_week1`
 - Embedding model: `sentence-transformers/all-MiniLM-L6-v2` (384-dim).
 
@@ -36,14 +36,14 @@ emb = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 chroma = Chroma(
     collection_name="advanced_agentic_week1",
     embedding_function=emb,
-    persist_directory="notebooks/week1/data/chroma_db",
+    persist_directory="notebooks/data/chroma_db",
 )
 docs = chroma.similarity_search("your query", k=10)   # list[Document]
 ```
 
 ### 2. Sparse index — BM25
 
-- Pickle path: `notebooks/week1/data/bm25_index.pkl`
+- Pickle path: `notebooks/data/bm25_index.pkl`
 - Loads to: `{"bm25": <rank_bm25.BM25Okapi>, "documents": list[Document]}`
 
 A classic lexical (term-frequency) ranker. Fast, no neural model.
@@ -53,7 +53,7 @@ To use:
 
 ```python
 import pickle
-with open("notebooks/week1/data/bm25_index.pkl", "rb") as f:
+with open("notebooks/data/bm25_index.pkl", "rb") as f:
     payload = pickle.load(f)
 
 bm25 = payload["bm25"]
@@ -101,4 +101,3 @@ available; refer to artifacts via the relative paths above.
 twice unchanged.
 - When you have enough evidence, stop running shell commands and
 answer the user.
-

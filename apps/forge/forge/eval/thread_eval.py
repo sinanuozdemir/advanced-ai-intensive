@@ -450,7 +450,7 @@ def _format_trajectory_for_prompt(traj: list[ToolCallRecord]) -> str:
 
 def _bind_judge(judge_llm: Any | None, schema: type) -> Any:
     """Bind a Pydantic schema to a judge LLM. Mirrors the helper from
-    ``notebooks/week1/judges.py`` so eval behavior matches the rest of
+    ``notebooks/judges.py`` so eval behavior matches the rest of
     the course."""
     if judge_llm is None:
         # Default to the cheap-but-careful judge from the course set.

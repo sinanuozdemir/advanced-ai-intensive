@@ -3,7 +3,7 @@
 Persists two artefacts under ``<repo>/.forge/rag_index/``:
 
 - ``bm25.pkl``       — pickle of ``{"bm25": rank_bm25_obj, "documents": [Document, ...]}``
-  (same shape as ``notebooks/week1/corpus.load_bm25()`` output).
+  (same shape as ``notebooks/corpus.load_bm25()`` output).
 - ``chroma/``        — Chroma persistent collection with sentence-transformers
   embeddings.
 
@@ -159,7 +159,7 @@ def _chunk_file(p: Path, rel: Path, chunk_size: int, overlap: int) -> list[Chunk
 
 
 def _tokenize(text: str) -> list[str]:
-    """Same tokenizer as ``notebooks/week1/retrievers.py:_tokenize``."""
+    """Same tokenizer as ``notebooks/retrievers.py:_tokenize``."""
     return [
         t for t in text.lower().split()
         if t.isalnum() or any(c.isalnum() for c in t)

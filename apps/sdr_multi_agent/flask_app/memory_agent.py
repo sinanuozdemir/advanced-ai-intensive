@@ -104,7 +104,7 @@ def build_semantic_tools(
     semantic: SemanticMemory,
     get_thread_id: Callable[[], str],
 ) -> list:
-    """LangChain tools aligned with ``notebooks/week2/2_memory_systems.ipynb``."""
+    """LangChain tools aligned with ``notebooks/memory_systems.ipynb``."""
 
     @tool
     def semantic_write(text: str) -> str:

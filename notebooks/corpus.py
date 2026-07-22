@@ -78,7 +78,7 @@ def load_chroma():
     if not CHROMA_DIR.exists():
         raise FileNotFoundError(
             f"Chroma index not found at {CHROMA_DIR}. "
-            "Run notebooks/week1/0_build_corpus.ipynb first."
+            "Run notebooks/build_corpus.ipynb first."
         )
     from langchain_chroma import Chroma
     return Chroma(
@@ -94,7 +94,7 @@ def load_bm25():
     if not BM25_PATH.exists():
         raise FileNotFoundError(
             f"BM25 index not found at {BM25_PATH}. "
-            "Run notebooks/week1/0_build_corpus.ipynb first."
+            "Run notebooks/build_corpus.ipynb first."
         )
     with open(BM25_PATH, "rb") as f:
         return pickle.load(f)
@@ -105,7 +105,7 @@ def load_gold_set() -> list[GoldQuestion]:
     if not GOLD_PATH.exists():
         raise FileNotFoundError(
             f"Gold set not found at {GOLD_PATH}. "
-            "Run notebooks/week1/0_build_corpus.ipynb first."
+            "Run notebooks/build_corpus.ipynb first."
         )
     out: list[GoldQuestion] = []
     with open(GOLD_PATH) as f:

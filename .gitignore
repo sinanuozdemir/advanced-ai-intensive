@@ -7,17 +7,17 @@ __pycache__/
 .DS_Store
 .pytest_cache/
 
-notebooks/*/data/corpus_cache/
-notebooks/*/data/chroma_db/
-notebooks/*/data/bm25_index.pkl
-notebooks/*/data/results_*.csv
-!notebooks/*/data/results_full.csv
-!notebooks/*/data/results_demo.csv
-!notebooks/*/data/gold_set.jsonl
+notebooks/data/corpus_cache/
+notebooks/data/chroma_db/
+notebooks/data/bm25_index.pkl
+notebooks/data/results_*.csv
+!notebooks/data/results_full.csv
+!notebooks/data/results_demo.csv
+!notebooks/data/gold_set.jsonl
 
-# Week 3 timestamped run artifacts (gold sets + final result CSVs stay tracked)
-notebooks/week3/data/plan_act_bakeoff_*.csv
-notebooks/week3/data/trajectory_probe_*
+# Timestamped plan/act bake-off run artifacts (gold sets stay tracked)
+notebooks/data/plan_act_bakeoff_*.csv
+notebooks/data/trajectory_probe_*
 
 .idea/
 .vscode/

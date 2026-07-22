@@ -1,7 +1,7 @@
 """Generate plausible (synthetic) `results_full.csv` and `results_demo.csv` so
-the analysis cells in notebook 5 render before students run the live sweep.
+the analysis cells in adaptive_rag_capstone render before students run the live sweep.
 
-Run from `notebooks/week1/`:
+Run from `notebooks/`:
 
     python data/_generate_demo_csv.py
 
@@ -15,7 +15,7 @@ data matches what the live sweep produces:
   x 5 questions x 1 run = 20 rows). Uses `openai/gpt-5.4-nano` in
   the `model` column to match what `run_suite` actually writes in demo mode.
 
-Re-running notebook 5 will overwrite whichever cache matches the current mode
+Re-running adaptive_rag_capstone will overwrite whichever cache matches the current mode
 with real numbers.
 """
 
@@ -164,7 +164,7 @@ def _load_questions() -> list[dict[str, Any]]:
 
 
 def _demo_subset(questions: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Mirror the deterministic 5-question mix from notebook 5's demo cell:
+    """Mirror the deterministic 5-question mix from adaptive_rag_capstone's demo cell:
     2 cross-source, 1 single-source, 2 hotpot."""
     cross   = [q for q in questions if q["id"].startswith("cross_")][:2]
     single  = [q for q in questions if q["id"].startswith("single_")][:1]
@@ -183,7 +183,7 @@ def main() -> None:
     }
     _write_csv(_build_rows(questions, full_variant_models, n_runs=3, seed=0), FULL_OUT_PATH)
 
-    # Demo mode mirrors notebook 5's `if DEMO_MODE:` branch: every variant
+    # Demo mode mirrors adaptive_rag_capstone's `if DEMO_MODE:` branch: every variant
     # runs against the same single model (`openai/gpt-5.4-nano`), one run each,
     # on the 5-question mix.
     demo_variant_models = {v: ["openai/gpt-5.4-nano"] for v in VARIANT_BASELINES}

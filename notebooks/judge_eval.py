@@ -6,7 +6,7 @@ range. The point isn't to "fix" the judge — it's to expose its biases so we
 can talk about them in the eval-deep-dive lecture.
 
 Usage:
-    cd notebooks/week3
+    cd notebooks
     python judge_eval.py
     # writes data/judge_eval_results.csv
 """
@@ -20,8 +20,8 @@ from pathlib import Path
 import pandas as pd
 
 _HERE = Path(__file__).resolve().parent
-_REPO_ROOT = _HERE.parent.parent
-sys.path.insert(0, str(_REPO_ROOT / "notebooks" / "week1"))
+_REPO_ROOT = _HERE.parent
+sys.path.insert(0, str(_HERE))
 sys.path.insert(0, str(_REPO_ROOT / "src"))
 
 from judges import judge_with_rubric  # noqa: E402

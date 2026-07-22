@@ -44,7 +44,7 @@ def _bm25_search(payload: dict, query: str, k: int) -> list[dict]:
     documents = payload.get("documents") or []
     if bm25 is None or not documents:
         return []
-    # Mirror notebooks/week1/retrievers._tokenize
+    # Mirror notebooks/retrievers._tokenize
     tokens = [t for t in query.lower().split() if t.isalnum() or any(c.isalnum() for c in t)]
     scores = bm25.get_scores(tokens)
     ranked = sorted(zip(scores, documents), key=lambda kv: float(kv[0]), reverse=True)

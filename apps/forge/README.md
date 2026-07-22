@@ -36,7 +36,7 @@ These are not negotiable — they are derived directly from prior weeks' bake-of
 - **MCP, deliberately.** W2 N1 found *direct programmatic* tool wiring beats MCP on raw success rate. Forge uses MCP anyway — for process isolation, a stable permission boundary, and a transparent on-the-wire surface. We document this as a **teaching trade-off**, not an oversight.
 - **Compaction = iterative refinement + strong summarizer.** W2 S4 didn't crown a single strategy, but its strongest finding was "the summarizer model dominates rule preservation." Forge defaults to the `refine` middleware paired with `anthropic/claude-opus-4.7` as the summarizer. Both swappable in config.
 - **Memory belongs to the main chat agent only (MVP).** Ephemeral and persistent agents do not get their own stores yet. Reflection runs on the main transcript at thread close.
-- **The eval harness is small in the binary.** `forge eval` is a thin gold-set runner. Statistical analysis (McNemar, Wilson CIs, pairwise comparisons) lives in `notebooks/week3/4_plan_act_bakeoff.ipynb`. Forge optimizes for *working*, not for benchmarking itself.
+- **The eval harness is small in the binary.** `forge eval` is a thin gold-set runner. Statistical analysis (McNemar, Wilson CIs, pairwise comparisons) lives in `notebooks/plan_act_bakeoff.ipynb`. Forge optimizes for *working*, not for benchmarking itself.
 
 ## Architecture
 
@@ -135,10 +135,10 @@ want the routing call to see context. Configure via:
 policy = "trajectory_probe"   # or "tool_risk_heuristic"
 ```
 
-The bake-off in `notebooks/week3/4_plan_act_bakeoff.ipynb` compares both
+The bake-off in `notebooks/plan_act_bakeoff.ipynb` compares both
 against three ablation baselines (`always_act_solo`, `always_plan_super`,
 `plan_then_self_critique`) on the same gold set Forge regresses against.
-Those ablations live in `notebooks/week3/plan_act_alts.py` and are **not**
+Those ablations live in `notebooks/plan_act_alts.py` and are **not**
 part of the Forge package — that's the whole point of keeping the bake-off
 separate from the product.
 
@@ -460,8 +460,8 @@ apps/forge/
       renderer/...                       # React app (Chat / Agents / Memory / MCP / Settings)
   docs/
     turn-flow-walkthrough.md             # how a user turn flows through Forge
-notebooks/week3/
-  4_plan_act_bakeoff.ipynb               # paired McNemar across 5 policies
+notebooks/
+  plan_act_bakeoff.ipynb                 # paired McNemar across 5 policies
   plan_act_alts.py                       # the 4 ablation policies (NOT in Forge)
 ```
 
@@ -473,4 +473,4 @@ notebooks/week3/
 - `forge sweep` + statistical machinery in the binary (currently the notebook's job).
 - `electron-forge` packaged distribution.
 
-Forge is small on purpose. Adding to this list should require a corresponding bake-off in `notebooks/week3/` showing the new thing earns its keep.
+Forge is small on purpose. Adding to this list should require a corresponding bake-off in `notebooks/` showing the new thing earns its keep.

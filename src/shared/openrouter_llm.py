@@ -1,6 +1,6 @@
 """OpenRouter- and Ollama-backed LLM factory (canonical copy under ``src/shared``).
 
-Used by course notebooks (via ``notebooks/week1/llm.py`` shim), Week 2
+Used by course notebooks (via ``notebooks/llm.py`` shim), Week 2
 libraries, and apps. Two routes, one entry point:
 
 * Slugs starting with ``ollama/`` are dispatched to ``shared.ollama_llm``

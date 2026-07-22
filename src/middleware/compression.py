@@ -222,7 +222,7 @@ class HierarchicalCompressionMiddleware(AgentMiddleware):
 
     The dropped chunk is replaced with a single marker line so the agent knows
     older history existed (in production this is where you'd write to
-    episodic memory — see ``notebooks/week2/2_memory_systems.ipynb``).
+    episodic memory — see ``notebooks/memory_systems.ipynb``).
     """
 
     strategy_name = "hierarchical"
